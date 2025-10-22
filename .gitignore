@@ -1,0 +1,9 @@
+.DS_Store
+target
+lucene/
+target/
+launch.json
+settings.json
+.vscode/
+.idea/
+.zip
