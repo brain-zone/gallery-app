@@ -15,8 +15,20 @@
         <hibernate.version>3.5.0-Final</hibernate.version>
     </properties>
 
+    <!-- Half these are old repositories !-->
     <repositories>
-        <!--
+        <repository>
+            <id>atlassian</id>
+            <url>https://maven.artifacts.atlassian.com/</url>
+            <name>Atlassian Repository</name>
+        </repository>
+    
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <name>Maven Central Repository</name>
+        </repository>
+
         <repository>
             <id>JBoss Repo</id>
             <url>http://repository.jboss.com/maven2</url>
@@ -26,7 +38,6 @@
             <id>ibiblio mirror</id>
             <url>http://mirrors.ibiblio.org/pub/mirrors/maven2/</url>
         </repository>
-        -->
         <repository>
             <id>jboss-public-repository-group</id>
             <name>JBoss Public Maven Repository Group</name>
@@ -88,7 +99,7 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.6.9.M2</version>
+            <version>1.9.7</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -373,6 +384,25 @@
             <version>2.5.1</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Legacy <dependencies> 
+        <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>2.3.3</version> 
+        </dependency>
+        <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>2.3.3</version>
+        </dependency>
+        
+        <dependency>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>1.2.2</version>
+        </dependency>
+        -->
     </dependencies>
 
     <build>
@@ -387,8 +417,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>8</source>
+                    <target>8</target>
+                    <release>8</release>
                 </configuration>
             </plugin>
             <plugin>
