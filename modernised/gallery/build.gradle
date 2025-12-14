@@ -1,0 +1,77 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.8'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+	id 'com.diffplug.spotless' version '6.25.0'
+	id 'com.github.spotbugs' version '6.0.18'
+}
+
+group = 'net.matrix.gallery'
+version = '0.0.1-SNAPSHOT'
+description = 'Implementing my practices sessions through my Gallery Application'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	compileOnly 'org.projectlombok:lombok'
+	compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.6'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+spotless {
+	java {
+		googleJavaFormat('1.22.0')
+		// include buildSrc if added later
+	}
+}
+
+spotbugs {
+	toolVersion = '4.8.6'
+	effort = 'max'
+	reportLevel = 'low'
+}
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+	reports {
+		html.required = true
+		xml.required = false
+	}
+}
