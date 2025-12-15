@@ -1,39 +1,61 @@
 package net.matrix.gallery.domain;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.time.Instant;
+import java.util.Objects;
 import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 /**
  * Visitor comment attached to an artwork.
  *
  * @author Anand Hemadri
  */
-@SuppressFBWarnings(
-    value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
-    justification = "Domain association intentionally exposed")
 @NoArgsConstructor
-@EqualsAndHashCode(of = "id")
-public class Comment {
+@Entity
+public class Comment extends BaseDomainEntity {
   @Getter
   @Setter(AccessLevel.PACKAGE)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
 
   @Getter @Setter private String comment;
-  @Getter @Setter private ArtEntity commentedArt;
-  @Setter private Instant commentedOn;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "art_entity_id", nullable = false)
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private ArtEntity commentedArt;
+
+  @CreationTimestamp
+  @Getter
+  @Setter(AccessLevel.PACKAGE)
+  private Instant commentedOn;
+
   @Getter @Setter private String firstName;
   @Getter @Setter private String lastName;
   @Getter @Setter private String emailAddress;
   @Getter @Setter private String telephone;
 
-  @Getter @Setter private Integer version;
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) return false;
+    Comment comment = (Comment) o;
+    return Objects.equals(id, comment.id);
+  }
 
-  public Instant getCommentedOn() {
-    return commentedOn;
+  @Override
+  public int hashCode() {
+    return System.identityHashCode(this);
   }
 }

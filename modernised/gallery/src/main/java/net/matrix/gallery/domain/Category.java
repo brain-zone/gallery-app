@@ -1,7 +1,14 @@
 package net.matrix.gallery.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -14,19 +21,27 @@ import lombok.Setter;
  * @author Anand Hemadri
  */
 @NoArgsConstructor
-public class Category implements BaseDomainEntity {
+@Entity
+public class Category extends BaseDomainEntity {
   @Getter
   @Setter(AccessLevel.PACKAGE)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
 
   @Getter @Setter private String categoryName;
 
   @Getter @Setter private String categoryDescription;
 
+  @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
   private Set<ArtEntity> artEntities = new HashSet<>();
 
-  public void addArtToCategory(ArtEntity art) {
+  void addArtToCategory(ArtEntity art) {
     this.artEntities.add(art);
+  }
+
+  void removeArtFromCategory(ArtEntity art) {
+    this.artEntities.remove(art);
   }
 
   public Set<ArtEntity> getArtEntities() {
@@ -35,26 +50,13 @@ public class Category implements BaseDomainEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     Category category = (Category) o;
-
-    if (id == null || category.id == null) {
-      return false;
-    }
-    if (!id.equals(category.id)) {
-      return false;
-    }
-    return categoryName != null
-        ? categoryName.equals(category.categoryName)
-        : category.categoryName == null;
+    return Objects.equals(id, category.id);
   }
 
   @Override
   public int hashCode() {
-    int result = (id != null ? id.hashCode() : 0);
-    result = 31 * result + (categoryName != null ? categoryName.hashCode() : 0);
-    return result;
+    return System.identityHashCode(this);
   }
 }
