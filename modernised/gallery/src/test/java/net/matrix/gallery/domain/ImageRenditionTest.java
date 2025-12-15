@@ -14,16 +14,7 @@ class ImageRenditionTest {
   @Test
   void recordHoldsProvidedValues() {
     ImageRendition rendition =
-        new ImageRendition(
-            RenditionType.GALLERY,
-            "objects/gallery.jpg",
-            "image/jpeg",
-            512L,
-            357,
-            312,
-            "md5-gallery");
-
-    assertEquals(RenditionType.GALLERY, rendition.type());
+        new ImageRendition("objects/gallery.jpg", "image/jpeg", 512L, 357, 312, "md5-gallery");
     assertEquals("objects/gallery.jpg", rendition.objectKey());
     assertEquals("image/jpeg", rendition.contentType());
     assertEquals(512L, rendition.sizeBytes());

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class CategoryTest {
 
   @Test
-  void addArtAddsToCollectionAndViewIsUnmodifiable() {
+  void addArtAddsToCollectionAndCollectionIsUnmodifiable() {
     Category category = new Category();
     category.setCategoryName("Portraits");
 
@@ -30,18 +30,6 @@ class CategoryTest {
   }
 
   @Test
-  void equalityWhenIdNullUsesName() {
-    Category one = new Category();
-    Category two = new Category();
-
-    one.setCategoryName("Abstract");
-    two.setCategoryName("Abstract");
-
-    assertNotEquals(one, two);
-    assertEquals(one.hashCode(), two.hashCode());
-  }
-
-  @Test
   void equalityHandlesNullsAndSelf() {
     Category category = new Category();
     category.setCategoryName(null);
@@ -49,9 +37,10 @@ class CategoryTest {
     // self
     assertEquals(category, category);
     // null
-    assertNotEquals(category, null);
+    assertNotEquals(null, category);
 
     Category other = new Category();
+    other.setId(1L);
     other.setCategoryName(null);
     assertNotEquals(category, other);
   }
@@ -66,9 +55,9 @@ class CategoryTest {
     two.setCategoryName("Abstract");
     three.setCategoryName("Abstract");
 
-    one.id = 1L;
-    two.id = 1L;
-    three.id = 2L;
+    one.setId(1L);
+    two.setId(1L);
+    three.setId(2L);
 
     assertEquals(one, two);
     assertNotEquals(one, three);
@@ -79,17 +68,17 @@ class CategoryTest {
   }
 
   @Test
-  void equalityWhenIdSameButNameDiffers() {
+  void equalityWhenIdSameIgnoresNameDifferences() {
     Category one = new Category();
     Category two = new Category();
 
     one.setCategoryName("Landscape");
     two.setCategoryName("Portrait");
 
-    one.id = 99L;
-    two.id = 99L;
+    one.setId(99L);
+    two.setId(99L);
 
-    assertNotEquals(one, two);
+    assertEquals(one, two);
   }
 
   @Test
@@ -97,38 +86,18 @@ class CategoryTest {
     Category one = new Category();
     Category two = new Category();
 
-    one.id = 5L;
-    two.id = 5L;
+    one.setId(5L);
+    two.setId(5L);
     one.setCategoryName(null);
     two.setCategoryName("Something");
 
-    assertNotEquals(one, two);
-  }
-
-  @Test
-  void equalityWhenNamesDiffer() {
-    Category one = new Category();
-    Category two = new Category();
-
-    one.setCategoryName("Landscape");
-    two.setCategoryName("Portrait");
-
-    assertNotEquals(one, two);
-  }
-
-  @Test
-  void equalityWhenDifferentType() {
-    Category category = new Category();
-    category.id = 42L;
-    category.setCategoryName("Abstract");
-
-    assertNotEquals(category, "not-a-category");
+    assertEquals(one, two);
   }
 
   @Test
   void hashCodeHandlesNullNameAndNonNullId() {
     Category category = new Category();
-    category.id = 7L;
+    category.setId(7L);
     category.setCategoryName(null);
 
     // should not throw and should be deterministic

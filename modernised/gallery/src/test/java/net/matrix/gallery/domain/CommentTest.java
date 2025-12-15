@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class CommentTest {
 
   @Test
-  void settersAndGettersRetainValues() {
+  void accessorsAndMutatorsRetainValues() {
     Comment comment = new Comment();
     ArtEntity art = new ArtEntity();
     Instant now = Instant.now();
@@ -26,7 +26,6 @@ class CommentTest {
     comment.setLastName("Lovelace");
     comment.setEmailAddress("ada@example.com");
     comment.setTelephone("123-456-7890");
-    comment.setVersion(1);
 
     assertEquals(10L, comment.getId());
     assertEquals("A thoughtful critique", comment.getComment());
@@ -36,6 +35,5 @@ class CommentTest {
     assertEquals("Lovelace", comment.getLastName());
     assertEquals("ada@example.com", comment.getEmailAddress());
     assertEquals("123-456-7890", comment.getTelephone());
-    assertEquals(1, comment.getVersion());
   }
 }

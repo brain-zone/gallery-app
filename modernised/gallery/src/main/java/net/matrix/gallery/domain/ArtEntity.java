@@ -1,12 +1,23 @@
 package net.matrix.gallery.domain;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.MapKeyEnumerated;
+import jakarta.persistence.OneToMany;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,9 +28,12 @@ import lombok.Setter;
  *
  * @author Anand Hemadri
  */
-public class ArtEntity implements BaseDomainEntity {
+@Entity
+public class ArtEntity extends BaseDomainEntity {
   @Getter
   @Setter(AccessLevel.PACKAGE)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
 
   @Getter @Setter private String title;
@@ -40,13 +54,31 @@ public class ArtEntity implements BaseDomainEntity {
 
   @Getter @Setter private String caption;
 
-  private Map<RenditionType, ArtRendition> renditions = new EnumMap<>(RenditionType.class);
+  @ElementCollection
+  @CollectionTable(name = "art_entity_rendition", joinColumns = @JoinColumn(name = "art_entity_id"))
+  @MapKeyEnumerated(EnumType.STRING)
+  @MapKeyColumn(name = "rendition_type")
+  private Map<RenditionType, ImageRendition> imageRendition = new EnumMap<>(RenditionType.class);
+
+  @ManyToMany(
+      fetch = FetchType.LAZY,
+      cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @JoinTable(
+      name = "art_entity_category",
+      joinColumns = @JoinColumn(name = "art_entity_id"),
+      inverseJoinColumns = @JoinColumn(name = "category_id"))
   private Set<Category> categories = new HashSet<>();
+
+  @OneToMany(
+      mappedBy = "commentedArt",
+      fetch = FetchType.LAZY,
+      cascade = {CascadeType.ALL},
+      orphanRemoval = true)
   private Set<Comment> comments = new HashSet<>();
 
-  @Setter private boolean generalViewable;
+  @Getter @Setter private boolean generalViewable;
 
-  @Setter
+  @Getter @Setter
   private boolean
       privilegeViewable; // can be seen by logged-in non-administrators (spcial visitors)
 
@@ -54,22 +86,22 @@ public class ArtEntity implements BaseDomainEntity {
 
   /** Thumbnail-sized rendition, if present. */
   public ArtRendition getThumbnailPicture() {
-    return renditions.get(RenditionType.THUMBNAIL);
+    return imageRendition.get(RenditionType.THUMBNAIL);
   }
 
   /** Gallery-sized rendition, if present. */
   public ArtRendition getGalleryPicture() {
-    return renditions.get(RenditionType.GALLERY);
+    return imageRendition.get(RenditionType.GALLERY);
   }
 
   /** Original or storage rendition, if present. */
   public ArtRendition getStoragePicture() {
-    return renditions.get(RenditionType.ORIGINAL);
+    return imageRendition.get(RenditionType.ORIGINAL);
   }
 
   /** Read-only view of available renditions. */
-  public Map<RenditionType, ArtRendition> getRenditions() {
-    return Collections.unmodifiableMap(renditions);
+  public Map<RenditionType, ImageRendition> getImageRendition() {
+    return Collections.unmodifiableMap(imageRendition);
   }
 
   /**
@@ -78,8 +110,8 @@ public class ArtEntity implements BaseDomainEntity {
    * @param type the rendition slot (ORIGINAL/GALLERY/THUMBNAIL)
    * @param rendition metadata pointing to the stored object
    */
-  public void addImageRendition(RenditionType type, ArtRendition rendition) {
-    this.renditions.put(type, rendition);
+  public void addImageRendition(RenditionType type, ImageRendition rendition) {
+    this.imageRendition.put(type, rendition);
   }
 
   /**
@@ -88,7 +120,7 @@ public class ArtEntity implements BaseDomainEntity {
    * @param type rendition slot to remove
    */
   public void removeImageRendition(RenditionType type) {
-    this.renditions.remove(type);
+    this.imageRendition.remove(type);
   }
 
   /** Categories this art is associated with. */
@@ -103,6 +135,7 @@ public class ArtEntity implements BaseDomainEntity {
    */
   public void addCategory(Category category) {
     this.categories.add(category);
+    category.addArtToCategory(this);
   }
 
   /**
@@ -112,6 +145,7 @@ public class ArtEntity implements BaseDomainEntity {
    */
   public void removeCategory(Category category) {
     this.categories.remove(category);
+    category.removeArtFromCategory(this);
   }
 
   /** Comments posted for this art. */
@@ -126,6 +160,7 @@ public class ArtEntity implements BaseDomainEntity {
    */
   public void addComment(Comment comment) {
     this.comments.add(comment);
+    comment.setCommentedArt(this);
   }
 
   /**
@@ -135,24 +170,18 @@ public class ArtEntity implements BaseDomainEntity {
    */
   public void removeComment(Comment comment) {
     this.comments.remove(comment);
+    comment.setCommentedArt(null);
   }
 
-  public boolean isGeneralViewable() {
-    return generalViewable;
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) return false;
+    ArtEntity artEntity = (ArtEntity) o;
+    return Objects.equals(id, artEntity.id);
   }
 
-  public boolean isPrivilegeViewable() {
-    return privilegeViewable;
-  }
-
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
-    ArtEntity other = (ArtEntity) obj;
-    return id != null && id.equals(other.id);
-  }
-
+  @Override
   public int hashCode() {
-    return 31 + (id == null ? 0 : id.hashCode());
+    return System.identityHashCode(this);
   }
 }
