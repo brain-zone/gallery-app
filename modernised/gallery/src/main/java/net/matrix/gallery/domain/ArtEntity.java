@@ -175,13 +175,14 @@ public class ArtEntity extends BaseDomainEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) return true;
+    if (!(o instanceof ArtEntity)) return false;
     ArtEntity artEntity = (ArtEntity) o;
-    return Objects.equals(id, artEntity.id);
+    return id != null && Objects.equals(id, artEntity.id);
   }
 
   @Override
   public int hashCode() {
-    return System.identityHashCode(this);
+    return getClass().hashCode();
   }
 }

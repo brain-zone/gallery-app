@@ -138,7 +138,7 @@ class ArtEntityTest {
   }
 
   @Test
-  void equalityUsesIdOnly() {
+  void equalsAndHashCodeContract() {
     ArtEntity one = new ArtEntity();
     one.setId(1L);
     one.setTitle("One");
@@ -147,11 +147,29 @@ class ArtEntityTest {
     two.setId(2L);
     two.setTitle("Two");
 
-    ArtEntity three = new ArtEntity();
-    three.setId(1L);
-    three.setTitle("Three");
+    ArtEntity oneAgain = new ArtEntity();
+    oneAgain.setId(1L);
+    oneAgain.setTitle("One Again");
 
+    // Not equal with different IDs
     assertNotEquals(one, two);
-    assertEquals(one, three);
+
+    // Equal with same IDs
+    assertEquals(one, oneAgain);
+
+    // Not equal to null
+    assertNotEquals(one, null);
+
+    // Not equal to different class
+    assertNotEquals(one, new Object());
+
+    // New entities are not equal to each other
+    assertNotEquals(new ArtEntity(), new ArtEntity());
+
+    // New entity not equal to persisted one
+    assertNotEquals(new ArtEntity(), one);
+
+    // Hashcode contract: equal objects must have equal hashcodes
+    assertEquals(one.hashCode(), oneAgain.hashCode());
   }
 }

@@ -17,7 +17,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
  *
  * @author Anand Hemadri
  */
-@DataJpaTest(properties = "spring.flyway.enabled=false")
+@DataJpaTest
 class ArtEntityPersistenceTest {
 
   @Autowired private EntityManager entityManager;
@@ -76,6 +76,26 @@ class ArtEntityPersistenceTest {
     entityManager.clear();
 
     assertThat(entityManager.find(Comment.class, commentId)).isNull();
+  }
+
+  @Test
+  void removingCategoryDoesNotDeleteCategory() {
+    ArtEntity artEntity = baseArtEntity();
+    Category category = new Category();
+    category.setCategoryName("Still Life");
+    entityManager.persist(category);
+    artEntity.addCategory(category);
+
+    entityManager.persist(artEntity);
+    entityManager.flush();
+
+    Long categoryId = category.getId();
+    artEntity.removeCategory(category);
+    entityManager.flush();
+    entityManager.clear();
+
+    assertThat(entityManager.find(Category.class, categoryId)).isNotNull();
+    assertThat(countCategoryLinks(artEntity.getId())).isZero();
   }
 
   private ArtEntity baseArtEntity() {
