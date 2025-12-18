@@ -49,13 +49,14 @@ public class Comment extends BaseDomainEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) return true;
+    if (!(o instanceof Comment)) return false;
     Comment comment = (Comment) o;
-    return Objects.equals(id, comment.id);
+    return id != null && Objects.equals(id, comment.id);
   }
 
   @Override
   public int hashCode() {
-    return System.identityHashCode(this);
+    return getClass().hashCode();
   }
 }

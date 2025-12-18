@@ -50,13 +50,14 @@ public class Category extends BaseDomainEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) return true;
+    if (!(o instanceof Category)) return false;
     Category category = (Category) o;
-    return Objects.equals(id, category.id);
+    return id != null && Objects.equals(id, category.id);
   }
 
   @Override
   public int hashCode() {
-    return System.identityHashCode(this);
+    return getClass().hashCode();
   }
 }
