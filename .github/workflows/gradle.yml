@@ -6,6 +6,7 @@ on:
       - 'modernised/gallery/src/**'
       - 'modernised/gallery/**/*.gradle*'
       - 'modernised/gallery/**/*.properties'
+      - '.github/workflows/gradle.yml'
   pull_request:
     branches: [ "master" ]
     types: [opened, synchronize, reopened]
