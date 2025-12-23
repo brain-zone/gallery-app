@@ -3,11 +3,11 @@ package net.matrix.gallery.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
-import net.matrix.gallery.domain.ArtEntity;
-import net.matrix.gallery.domain.Category;
-import net.matrix.gallery.domain.Comment;
-import net.matrix.gallery.domain.ImageRendition;
-import net.matrix.gallery.domain.RenditionType;
+import net.matrix.gallery.domain.model.ArtEntity;
+import net.matrix.gallery.domain.model.Category;
+import net.matrix.gallery.domain.model.Comment;
+import net.matrix.gallery.domain.value.ImageRendition;
+import net.matrix.gallery.domain.value.RenditionType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

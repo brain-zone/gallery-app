@@ -2,6 +2,7 @@ package net.matrix.gallery.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import net.matrix.gallery.domain.value.ImageRendition;
 import org.junit.jupiter.api.Test;
 
 /**

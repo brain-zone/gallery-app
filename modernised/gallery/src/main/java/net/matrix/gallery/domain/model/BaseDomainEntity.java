@@ -1,4 +1,4 @@
-package net.matrix.gallery.domain;
+package net.matrix.gallery.domain.model;
 
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Version;

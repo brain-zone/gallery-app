@@ -1,7 +1,9 @@
-package net.matrix.gallery.domain;
+package net.matrix.gallery.domain.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import net.matrix.gallery.domain.value.ImageRendition;
+import net.matrix.gallery.domain.value.RenditionType;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -1,4 +1,4 @@
-package net.matrix.gallery.domain;
+package net.matrix.gallery.domain.value;
 
 import jakarta.persistence.Embeddable;
 
