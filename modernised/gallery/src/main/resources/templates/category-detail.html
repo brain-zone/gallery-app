@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${category.categoryName}">Gallery category</title>
+  </head>
+  <body>
+    <main>
+      <nav><a th:href="@{/categories}">All categories</a></nav>
+      <h1 th:text="${category.categoryName}">Category</h1>
+      <p th:if="${category.categoryDescription}" th:text="${category.categoryDescription}">
+        Category description
+      </p>
+      <p th:if="${#lists.isEmpty(category.artworks)}">No artwork is available.</p>
+      <ul th:unless="${#lists.isEmpty(category.artworks)}">
+        <li th:each="artwork : ${category.artworks}">
+          <a th:href="@{/artworks/{id}(id=${artwork.id})}" th:text="${artwork.title}">Artwork</a>
+          <span th:if="${artwork.subTitle}" th:text="${artwork.subTitle}">Subtitle</span>
+        </li>
+      </ul>
+    </main>
+  </body>
+</html>

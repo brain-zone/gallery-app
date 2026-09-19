@@ -1,9 +1,11 @@
 package net.matrix.gallery.web;
 
 import java.util.List;
+import net.matrix.gallery.domain.value.CategoryDetail;
 import net.matrix.gallery.domain.value.CategorySummary;
 import net.matrix.gallery.service.CategoryService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +23,10 @@ public class CategoryRestController {
   @GetMapping
   public List<CategorySummary> listCategories() {
     return categoryService.listCategories();
+  }
+
+  @GetMapping("/{id}")
+  public CategoryDetail showCategory(@PathVariable long id) {
+    return categoryService.getCategory(id);
   }
 }
