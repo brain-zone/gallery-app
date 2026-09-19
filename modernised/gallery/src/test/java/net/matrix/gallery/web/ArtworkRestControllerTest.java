@@ -23,7 +23,7 @@ class ArtworkRestControllerTest {
   private MockMvc mockMvc;
 
   @BeforeEach
-  void setUp() {
+  void configureMockMvc() {
     MockitoAnnotations.openMocks(this);
     mockMvc = MockMvcBuilders.standaloneSetup(new ArtworkRestController(artworkService)).build();
   }

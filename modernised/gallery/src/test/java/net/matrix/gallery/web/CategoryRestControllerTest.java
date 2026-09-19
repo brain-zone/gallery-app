@@ -27,7 +27,7 @@ class CategoryRestControllerTest {
   private MockMvc mockMvc;
 
   @BeforeEach
-  void setUp() {
+  void configureMockMvc() {
     MockitoAnnotations.openMocks(this);
     mockMvc = MockMvcBuilders.standaloneSetup(new CategoryRestController(categoryService)).build();
   }

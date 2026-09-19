@@ -30,7 +30,9 @@ public class ArtworkService {
 
     List<CategoryReference> categories =
         artwork.getCategories().stream()
-            .sorted(Comparator.comparing(category -> category.getCategoryName().toLowerCase()))
+            .sorted(
+                Comparator.comparing(
+                    category -> category.getCategoryName(), String.CASE_INSENSITIVE_ORDER))
             .map(category -> new CategoryReference(category.getId(), category.getCategoryName()))
             .toList();
     List<RenditionDetail> renditions =

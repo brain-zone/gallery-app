@@ -2,6 +2,7 @@ package net.matrix.gallery.config;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,8 @@ public class SecurityConfiguration {
     return http.authorizeHttpRequests(
             requests ->
                 requests
+                    .dispatcherTypeMatchers(DispatcherType.ERROR)
+                    .permitAll()
                     .requestMatchers(
                         HttpMethod.GET,
                         "/categories",

@@ -7,6 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,16 +19,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class PublicBrowsingIntegrationTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryRepository categoryRepository;
   @Autowired private ArtworkRepository artworkRepository;
+
+  @LocalServerPort private int port;
 
   private long categoryId;
   private long artworkId;
@@ -103,5 +111,22 @@ class PublicBrowsingIntegrationTest {
   @Test
   void unrelatedActuatorEndpointRemainsProtected() throws Exception {
     mockMvc.perform(get("/actuator/health").with(anonymous())).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void realHttpErrorDispatchPreservesPublicNotFoundResponses() throws Exception {
+    assertThat(httpStatus("/categories/" + Long.MAX_VALUE)).isEqualTo(404);
+    assertThat(httpStatus("/api/categories/" + Long.MAX_VALUE)).isEqualTo(404);
+    assertThat(httpStatus("/artworks/" + Long.MAX_VALUE)).isEqualTo(404);
+    assertThat(httpStatus("/api/artworks/" + Long.MAX_VALUE)).isEqualTo(404);
+    assertThat(httpStatus("/actuator/health")).isEqualTo(401);
+  }
+
+  private int httpStatus(String path) throws IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+    return HttpClient.newHttpClient()
+        .send(request, HttpResponse.BodyHandlers.discarding())
+        .statusCode();
   }
 }

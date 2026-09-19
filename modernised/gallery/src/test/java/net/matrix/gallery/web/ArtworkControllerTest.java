@@ -29,7 +29,7 @@ class ArtworkControllerTest {
   private MockMvc mockMvc;
 
   @BeforeEach
-  void setUp() {
+  void configureMockMvc() {
     MockitoAnnotations.openMocks(this);
     var viewResolver = new InternalResourceViewResolver("/WEB-INF/templates/", ".html");
     mockMvc =
