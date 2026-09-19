@@ -169,4 +169,16 @@ public class CategoryRepositoryTest {
     assertEquals(3, summaryByName.get("Category1").artEntityCount());
     assertEquals(4, summaryByName.get("Category2").artEntityCount());
   }
+
+  @Test
+  void findWithArtEntitiesLoadsCategoryAndArtwork() {
+    Long categoryId = cat2.getId();
+    entityManager.clear();
+
+    var category = categoryRepository.findWithArtEntitiesById(categoryId);
+
+    assertTrue(category.isPresent());
+    assertEquals("Category2", category.orElseThrow().getCategoryName());
+    assertEquals(2, category.orElseThrow().getArtEntities().size());
+  }
 }
