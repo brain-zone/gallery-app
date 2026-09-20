@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gallery Login</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+</head>
+<body>
+
+<div class="page-shell">
+    <div class="login-box">
+        <h1>Gallery Administration</h1>
+
+        <p th:if="${param.error}" class="error">
+            Invalid username or password.
+        </p>
+
+        <p th:if="${param.logout}" class="success">
+            You have been logged out.
+        </p>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-row">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" autofocus>
+            </div>
+
+            <div class="form-row">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Sign in</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

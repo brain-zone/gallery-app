@@ -38,9 +38,13 @@ class ArtworkRestControllerTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(9))
         .andExpect(jsonPath("$.title").value("Evening Sky"))
+        .andExpect(jsonPath("$.artist").value("Legacy Artist"))
+        .andExpect(jsonPath("$.genre").value("Landscape"))
         .andExpect(jsonPath("$.categories[0].categoryName").value("Landscapes"))
+        .andExpect(jsonPath("$.primaryImageUrl").value("/artworks/images/evening-sky.jpg"))
         .andExpect(jsonPath("$.renditions[0].type").value("GALLERY"))
-        .andExpect(jsonPath("$.renditions[0].objectKey").value("gallery/evening-sky.jpg"));
+        .andExpect(jsonPath("$.renditions[0].objectKey").value("gallery/evening-sky.jpg"))
+        .andExpect(jsonPath("$.renditions[0].url").value("/gallery/evening-sky.jpg"));
   }
 
   @Test

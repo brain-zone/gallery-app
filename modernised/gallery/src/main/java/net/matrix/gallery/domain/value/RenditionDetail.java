@@ -4,6 +4,7 @@ package net.matrix.gallery.domain.value;
 public record RenditionDetail(
     RenditionType type,
     String objectKey,
+    String url,
     String contentType,
     Long sizeBytes,
     Integer width,

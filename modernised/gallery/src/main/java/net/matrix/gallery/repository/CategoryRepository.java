@@ -25,7 +25,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
   @Query(
       """
         SELECT DISTINCT c FROM Category c
-        LEFT JOIN FETCH c.artEntities
+        LEFT JOIN FETCH c.artEntities artwork
+        LEFT JOIN FETCH artwork.imageRendition
         WHERE c.id = :id
         """)
   Optional<Category> findWithArtEntitiesById(@Param("id") Long id);

@@ -37,6 +37,8 @@ class ArtworkServiceTest {
     assertThat(detail.id()).isEqualTo(9L);
     assertThat(detail.title()).isEqualTo("Evening Sky");
     assertThat(detail.subTitle()).isEqualTo("Sunset series");
+    assertThat(detail.artist()).isEqualTo("Legacy Artist");
+    assertThat(detail.genre()).isEqualTo("Landscape");
     assertThat(detail.displayDate()).isEqualTo(LocalDate.of(2026, 1, 15));
     assertThat(detail.width()).isEqualTo(1200);
     assertThat(detail.height()).isEqualTo(800);
@@ -45,6 +47,7 @@ class ArtworkServiceTest {
     assertThat(detail.caption()).isEqualTo("Serenity at dusk");
     assertThat(detail.generalViewable()).isTrue();
     assertThat(detail.privilegeViewable()).isFalse();
+    assertThat(detail.primaryImageUrl()).isEqualTo("/gallery/evening-sky.jpg");
     assertThat(detail.categories())
         .singleElement()
         .satisfies(
@@ -58,6 +61,7 @@ class ArtworkServiceTest {
             rendition -> {
               assertThat(rendition.type()).isEqualTo(RenditionType.GALLERY);
               assertThat(rendition.objectKey()).isEqualTo("gallery/evening-sky.jpg");
+              assertThat(rendition.url()).isEqualTo("/gallery/evening-sky.jpg");
               assertThat(rendition.contentType()).isEqualTo("image/jpeg");
               assertThat(rendition.sizeBytes()).isEqualTo(245760L);
               assertThat(rendition.width()).isEqualTo(1200);
@@ -85,6 +89,8 @@ class ArtworkServiceTest {
     ReflectionTestUtils.setField(artwork, "id", 9L);
     artwork.setTitle("Evening Sky");
     artwork.setSubTitle("Sunset series");
+    artwork.setArtist("Legacy Artist");
+    artwork.setGenre("Landscape");
     artwork.setUploadedDate(Instant.parse("2026-01-01T00:00:00Z"));
     artwork.setDisplayDate(LocalDate.of(2026, 1, 15));
     artwork.setWidth(1200);

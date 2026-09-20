@@ -1,87 +1,51 @@
-# Gallery Application – Legacy & Modernised
+# Gallery Application: Legacy and Modernised
 
-This repository contains two related implementations of the same Gallery Application:
+This repository preserves an early Java gallery application beside an incremental Spring Boot modernisation. It is intended as a before-and-after engineering study: the legacy module supplies behavioural and design evidence, while the modernised module rebuilds selected flows with current Java, explicit migrations, automated tests, and narrower security boundaries.
 
-- `legacy/gallery` – the original **Spring MVC + Hibernate + WAR on Tomcat** app  
-- `modernised/gallery` – the **Spring Boot 3 + Java 21** rewrite
+The modernisation is not a feature-for-feature port. Completed behaviour and future work are kept separate below.
 
-The goal of this repo is to **showcase a full-stack modernisation journey**:
-from a 2000s-style Java web app to a 2025-ready, container-friendly Spring Boot service.
-
----
-
-## Repository Structure
+## Repository structure
 
 ```text
-.
-├── legacy
-│   └── gallery
-│       ├── pom.xml
-│       ├── src
-│       │   ├── main
-│       │   └── test
-│       └── target
-│           ├── classes
-│           └── test-classes
-└── modernised
-    └── gallery
-        ├── build.gradle
-        ├── gradle
-        │   └── wrapper
-        ├── gradlew
-        ├── gradlew.bat
-        ├── HELP.md
-        ├── settings.gradle
-        └── src
-            ├── main
-            └── test
-````
+gallery-app/
+├── legacy/gallery/       # Preserved Spring MVC, JSP, Hibernate and Maven WAR
+└── modernised/gallery/   # Spring Boot, Thymeleaf, Spring Data JPA and Gradle
+```
 
-* See [`legacy/gallery/readme.md`](legacy/gallery/readme.md) for the legacy app details.
-* See [`modernised/gallery/readme.md`](modernised/gallery/readme.md) for the modern Spring Boot app.
+- [Legacy module reference](legacy/gallery/readme.md)
+- [Modernised implementation and runbook](modernised/gallery/readme.md)
 
----
+## What is implemented now
 
-## Modernisation Story (High Level)
+The modernised application currently provides:
 
-**Legacy app**
+- public category and artwork browsing through Thymeleaf pages and JSON APIs;
+- a deterministic startup import of 10 curated artworks and their static images;
+- category reuse, stable catalog identity, rendition metadata, and repeat-safe imports;
+- a root redirect to the category browser;
+- a custom Spring Security login page while unrelated routes, including Actuator, remain protected;
+- legacy-inspired page-shell styling and shared navigation, without claiming exact visual parity;
+- Flyway-managed schema evolution and repository, service, controller, persistence, and HTTP integration tests.
 
-* Java 8
-* Spring MVC (XML configuration)
-* Hibernate SessionFactory / DAOs
-* JSP views
-* WAR deployment on Tomcat
+The latest local verification on the current feature branch passed 64 tests, the full Gradle build, static analysis, and packaged-application HTTP acceptance. GitHub Actions also defines a Gradle build workflow for pushes to `develop` and pull requests to `master`; this README does not imply that the current uncommitted branch has run remotely.
 
-**Modernised app**
+## Technology direction
 
-* Java 21
-* Spring Boot 3.x (Gradle build)
-* Spring Web MVC, Spring Security
-* Spring Data JPA + Flyway
-* Thymeleaf views
-* Fat JAR + containerised deployment
+| Legacy reference | Modernised implementation |
+| --- | --- |
+| Java 6 source target | Java 21 toolchain |
+| Spring Framework 3.0 XML configuration | Spring Boot 3.5 and Java configuration |
+| Hibernate 3 DAOs / JPA alternatives | Spring Data JPA repositories and transactional services |
+| JSP/JSTL and servlet mappings | Thymeleaf MVC pages and JSON controllers |
+| Manually evolved schema | Forward-only Flyway migrations |
+| Maven WAR | Gradle executable Boot JAR |
 
-The two codebases implement **the same functional flows** (gallery browsing, artwork upload, exhibitions, interest capture), making it easy to compare architectures, patterns, and operational characteristics.
+The strategy is to modernise in verified slices: understand a legacy flow, implement the smallest coherent replacement, add automated coverage, prove it over real HTTP, and only then update documentation and the project tracker.
 
----
+## Remaining roadmap
 
-## How to Use This Repo
+The modernised module does not yet implement Virtual Exhibitions, Bio content, artwork administration/upload, interest capture, OAuth/OIDC, advanced gallery navigation or lightbox behaviour, exact legacy visual parity, or production container/observability infrastructure. See the [modernised module README](modernised/gallery/readme.md) for precise routes, commands, and limitations.
 
-* If you want to **understand the old design**, start in `legacy/gallery`.
-* If you want to see the **modern implementation**, go to `modernised/gallery`.
-* If you care about the **before/after diff**, look at:
+## Historical context
 
-  * controllers -> REST + MVC controllers in Boot
-  * DAOs -> Spring Data JPA repositories
-  * JSPs -> Thymeleaf templates
-  * XML Spring config → Boot auto-configuration + `@Configuration` classes
-
->  **Historical Note:**  
-> This legacy app was originally built after studying *Spring Persistence with Hibernate*, 
-> a legendary (and now very ancient) book from the XML era of enterprise Java.  
-> It taught me DAOs, Hibernate plumbing, `<tx:advice>`, and enough XML to carpet a 
-> 3-bedroom house.  
-> 
-> This repo keeps that version intact so the modern rewrite can show just how far the 
-> Spring ecosystem has evolved—and why modern developers should never have to touch a 
-> SessionFactory again.
+The legacy application grew from hands-on work with the XML-era Spring and Hibernate stack. It remains intact because its controllers, mappings, JSPs, CSS, assets, and domain model are more useful as traceable source material than as code to retrofit in place.

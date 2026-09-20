@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${category.categoryName}">Gallery category</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
   </head>
   <body>
+  <div class="page-shell">
+      <div class="content-panel">
     <main>
-      <nav><a th:href="@{/categories}">All categories</a></nav>
+      <nav th:replace="~{fragments/navigation :: navigation}"></nav>
       <h1 th:text="${category.categoryName}">Category</h1>
       <p th:if="${category.categoryDescription}" th:text="${category.categoryDescription}">
         Category description
@@ -15,10 +18,18 @@
       <p th:if="${#lists.isEmpty(category.artworks)}">No artwork is available.</p>
       <ul th:unless="${#lists.isEmpty(category.artworks)}">
         <li th:each="artwork : ${category.artworks}">
-          <a th:href="@{/artworks/{id}(id=${artwork.id})}" th:text="${artwork.title}">Artwork</a>
+          <a th:href="@{/artworks/{id}(id=${artwork.id})}">
+            <img th:if="${artwork.imageUrl}"
+                 th:src="${artwork.imageUrl}"
+                 th:alt="${artwork.title}"
+                 width="240">
+            <span th:text="${artwork.title}">Artwork</span>
+          </a>
           <span th:if="${artwork.subTitle}" th:text="${artwork.subTitle}">Subtitle</span>
         </li>
       </ul>
     </main>
+      </div>
+  </div>
   </body>
 </html>

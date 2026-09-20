@@ -27,6 +27,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class PublicBrowsingIntegrationTest {
 
+  private static final String LANDSCAPE_IMAGE_PATH =
+      "/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryRepository categoryRepository;
   @Autowired private ArtworkRepository artworkRepository;
@@ -40,9 +43,8 @@ class PublicBrowsingIntegrationTest {
   void findSeedData() {
     categoryId = categoryRepository.findByCategoryNameIgnoreCase("Landscape").orElseThrow().getId();
     artworkId =
-        artworkRepository.findAll().stream()
-            .filter(artwork -> "Evening Sky".equals(artwork.getTitle()))
-            .findFirst()
+        artworkRepository
+            .findByCatalogKeyIgnoreCase("sunrise_mountain_photograph.jpg")
             .orElseThrow()
             .getId();
   }
@@ -64,17 +66,25 @@ class PublicBrowsingIntegrationTest {
         .perform(get("/categories/{id}", categoryId).with(anonymous()))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Evening Sky")))
         .andExpect(
-            content().string(org.hamcrest.Matchers.containsString("/artworks/" + artworkId)));
+            content().string(org.hamcrest.Matchers.containsString("Sunrise over the Mountain")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("/artworks/" + artworkId)))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_IMAGE_PATH)));
 
     mockMvc
         .perform(get("/artworks/{id}", artworkId).with(anonymous()))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Evening Sky")))
         .andExpect(
-            content().string(org.hamcrest.Matchers.containsString("gallery/evening-sky.jpg")));
+            content().string(org.hamcrest.Matchers.containsString("Sunrise over the Mountain")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Maya Vasquez")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(">Genre</dt>")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Nature")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(">Media</dt>"))))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_IMAGE_PATH)));
   }
 
   @Test
@@ -89,13 +99,29 @@ class PublicBrowsingIntegrationTest {
         .perform(get("/api/categories/{id}", categoryId).with(anonymous()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.categoryName").value("Landscape"))
-        .andExpect(jsonPath("$.artworks[0].title").value("Evening Sky"));
+        .andExpect(jsonPath("$.artworks[0].title").value("Sunrise over the Mountain"));
 
     mockMvc
         .perform(get("/api/artworks/{id}", artworkId).with(anonymous()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.title").value("Evening Sky"))
+        .andExpect(jsonPath("$.title").value("Sunrise over the Mountain"))
+        .andExpect(jsonPath("$.artist").value("Maya Vasquez"))
+        .andExpect(jsonPath("$.genre").value("Nature"))
+        .andExpect(jsonPath("$.media").doesNotExist())
+        .andExpect(jsonPath("$.primaryImageUrl").value(LANDSCAPE_IMAGE_PATH))
+        .andExpect(jsonPath("$.renditions[0].url").value(LANDSCAPE_IMAGE_PATH))
         .andExpect(jsonPath("$.categories[0].categoryName").value("Landscape"));
+  }
+
+  @Test
+  void anonymousVisitorCanLoadCuratedImageBytes() throws Exception {
+    mockMvc
+        .perform(get(LANDSCAPE_IMAGE_PATH).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG));
+    mockMvc
+        .perform(get("/artworks/images/missing.jpeg").with(anonymous()))
+        .andExpect(status().isNotFound());
   }
 
   @Test

@@ -20,6 +20,8 @@ public class SecurityConfiguration {
                 requests
                     .dispatcherTypeMatchers(DispatcherType.ERROR)
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/", "/login", "/css/**")
+                    .permitAll()
                     .requestMatchers(
                         HttpMethod.GET,
                         "/categories",
@@ -31,6 +33,7 @@ public class SecurityConfiguration {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+        .formLogin(form -> form.loginPage("/login").permitAll())
         .httpBasic(withDefaults())
         .build();
   }

@@ -54,7 +54,9 @@ class CategoryRestControllerTest {
                 5L,
                 "Landscapes",
                 "Landscape works",
-                List.of(new ArtworkSummary(9L, "Evening Sky", "Sunset series"))));
+                List.of(
+                    new ArtworkSummary(
+                        9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg"))));
 
     mockMvc
         .perform(get("/api/categories/5"))
@@ -64,7 +66,8 @@ class CategoryRestControllerTest {
         .andExpect(jsonPath("$.categoryName").value("Landscapes"))
         .andExpect(jsonPath("$.categoryDescription").value("Landscape works"))
         .andExpect(jsonPath("$.artworks[0].id").value(9))
-        .andExpect(jsonPath("$.artworks[0].title").value("Evening Sky"));
+        .andExpect(jsonPath("$.artworks[0].title").value("Evening Sky"))
+        .andExpect(jsonPath("$.artworks[0].imageUrl").value("/artworks/images/evening-sky.jpg"));
   }
 
   @Test

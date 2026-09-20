@@ -1,129 +1,79 @@
+# Gallery Application — Legacy Reference
 
-# Gallery Application — Legacy Version
+This module is the preserved historical implementation of the Gallery Application. It is reference material for the Spring Boot modernisation in [`../../modernised/gallery`](../../modernised/gallery/readme.md); it is not being modernised in place.
 
-This module contains the **legacy implementation** of the Gallery Application — originally built using:
+## Historical stack
 
-- **Spring MVC (XML-configured)**
-- **Hibernate ORM (SessionFactory, DAOs)**
-- **JSP views**
-- **WAR packaging on Tomcat 8**
-- **Java 8**
-- **Maven build**
+The checked-in build and configuration use:
 
-I have intentionally preserved as a **reference system** to support a complete modernisation into **Spring Boot 3.x (Java 21)** in `modernised/gallery`.
+| Area | Repository evidence |
+| --- | --- |
+| Language level | Maven compiler source/target 1.6 |
+| Framework | Spring Framework and Spring MVC 3.0.2, primarily XML-configured |
+| Persistence | Hibernate 3.5, JPA/Hibernate DAO implementations, Open EntityManager in View |
+| Views | JSP and JSTL under `src/main/webapp` |
+| Web platform | Servlet 2.5, `*.art` and `/art/*` dispatcher mappings |
+| Database | H2 configuration without Flyway migrations |
+| Build/deployment | Maven WAR with historical Tomcat and Jetty Maven plugins |
 
----
+The repository does not contain the Dockerfile previously described by this README, and the POM targets Java 6 rather than Java 8.
 
-## Purpose of the Legacy Module
+## Historical application structure
 
-The legacy app represents:
+```text
+legacy/gallery/
+├── pom.xml
+└── src/
+    ├── main/java/                    # Domain, DAO, service and controller code
+    ├── main/resources/META-INF/      # Spring, datasource and persistence XML
+    └── main/webapp/
+        ├── WEB-INF/JSP/              # Gallery and administration JSPs
+        ├── WEB-INF/spring/           # MVC handler and view configuration
+        ├── css/, js/, images/        # Original visual theme and lightbox assets
+        └── home.jsp                  # Welcome page
+```
 
-- The original **domain model** (Category, Art, Exhibition, etc.)
-- The existing **user flows**:
-  - browse categories
-  - view artworks
-  - basic “interested” interaction
-  - admin upload / exhibition creation
-- The old **controller routes** and JSP UI
-- Historical architectural issues that the new version explicitly fixes
+## Behaviour retained as reference
 
-This module is **frozen**: no new features are planned here.
+The legacy code and configuration contain:
 
----
+- a home page, category list, category selection, artwork selection, and image-display flow;
+- JSPs and assets for artwork detail, interest capture, Bio, exhibitions, and lightbox-style navigation;
+- controller-backed administrator login, artwork upload, and exhibition creation;
+- category/artwork REST endpoints returning DTO representations;
+- the original category, artwork, comment, person, and exhibition domain concepts.
 
-##  Tech Stack (Legacy)
+Some exhibition mappings are commented out and the presence of a JSP or domain class does not by itself establish a complete runnable flow. These artifacts are treated as behavioural evidence, not as acceptance proof for the modernised application.
 
-| Layer| Technology|
-|----|----|
-| Language | Java 8|
-| Framework| Spring MVC (XML configuration)|
-| Persistence| Hibernate ORM + DAOs|
-| Views | JSP + JSTL|
-| Packaging| WAR|
-| Server| Apache Tomcat 8|
-| Build Tool| Maven 3|
-| Database    | H2 / Derby (no formal migrations)|
+## Build and reference use
 
----
-
-## 📦 Build & Run (Docker)
-
-A Dockerfile is provided to sandbox the legacy app:
-
-```dockerfile
-FROM maven:3.6.3-jdk-8 AS build
-COPY . /app
-WORKDIR /app
-RUN mvn -B -q clean package -DskipTests
-
-FROM tomcat:8.5-jre8-alpine
-RUN rm -rf /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/*
-COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
-EXPOSE 8080
-CMD ["catalina.sh", "run"]
-````
-
-### Build
+Historical Maven commands are:
 
 ```bash
 cd legacy/gallery
-docker build -t legacy-gallery .
+mvn test
+mvn package
 ```
 
-### Run
+The module uses old plugins, repositories, and Java-era dependencies, so running it may require a compatible legacy JDK and repository access. Its current build/runtime was not revalidated as part of the curated-catalog milestone.
 
-```bash
-docker run -p 8080:8080 legacy-gallery
-```
+For modernisation work, inspect the following before reproducing a flow:
 
-Then open:
-this link [http://localhost:8080](http://localhost:8080)
+- `WEB-INF/spring/spring-web-gallery.xml` for handler and view mappings;
+- `WEB-INF/JSP/` and `home.jsp` for page behaviour;
+- `bifa.css`, `admin.css`, `css/`, `js/`, and `images/` for the legacy presentation;
+- controller, facade, DAO, and domain packages for persistence semantics.
 
+## Known technical debt preserved intentionally
 
-## Features Overview
+- XML-heavy wiring and legacy framework/plugin versions;
+- direct Spring MVC controller interfaces and deprecated base controller classes;
+- parallel Hibernate and JPA DAO implementations;
+- Open EntityManager in View and view-layer persistence coupling;
+- manual schema evolution with no migration history;
+- tightly coupled upload, image processing, authentication, controller, and JSP behaviour;
+- limited validation and error handling compared with the modern module.
 
-### Public Flows
+## Difference from the modern module
 
-* List categories
-* Select a category -> view artworks
-* Select artwork -> view detail page
-* Basic interest action
-
-### Admin Flows
-
-* Login (custom controller-based)
-* Admin menu (JSP)
-* Upload artwork
-* Create exhibitions
-
----
-
-## Known Issues (Intentionally Kept)
-
-* Writes inside `GET` handlers
-* Open Session in View / manual Session management
-* XML-heavy Spring configuration
-* Tight coupling between controllers, DAOs, and views
-* No schema migrations (manual DB evolution)
-* Weak validation and error handling
-
-These are **not** to be fixed here — they are the **input problems** for the modernised version in `modernised/gallery`.
-
----
-
-## Layout
-
-```text
-legacy/gallery
-├── pom.xml
-└── src
-    ├── main
-    │   ├── java        # Controllers, DAOs, entities
-    │   ├── resources   # Spring XML config
-    │   └── webapp      # JSP views, WEB-INF, web.xml
-    └── test
-```
-
-For the modern implementation, see [`../../modernised/gallery`](../../modernised/gallery).
-
----
+The modern application currently reproduces only the verified public category/artwork browsing slice, curated catalog bootstrap, static image delivery, root redirect, custom login shell, and scoped security. Legacy exhibitions, Bio, interest capture, administration/upload, and exact theme behaviour remain future modernisation work.

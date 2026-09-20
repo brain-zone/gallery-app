@@ -3,19 +3,25 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
     <title>Gallery categories</title>
   </head>
   <body>
-    <main>
-      <h1>Gallery categories</h1>
-      <p th:if="${#lists.isEmpty(categories)}">No categories are available.</p>
-      <ul th:unless="${#lists.isEmpty(categories)}">
-        <li th:each="category : ${categories}">
-          <a th:href="@{/categories/{id}(id=${category.id})}"
-             th:text="${category.categoryName}">Category</a>
-          <span th:text="|(${category.artEntityCount} artworks)|">(0 artworks)</span>
-        </li>
-      </ul>
-    </main>
+  <div class="page-shell">
+      <div class="content-panel">
+        <main>
+            <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <h1>Gallery categories</h1>
+          <p th:if="${#lists.isEmpty(categories)}">No categories are available.</p>
+          <ul th:unless="${#lists.isEmpty(categories)}">
+            <li th:each="category : ${categories}">
+              <a th:href="@{/categories/{id}(id=${category.id})}"
+                 th:text="${category.categoryName}">Category</a>
+              <span th:text="|(${category.artEntityCount} artworks)|">(0 artworks)</span>
+            </li>
+          </ul>
+        </main>
+      </div>
+  </div>
   </body>
 </html>
