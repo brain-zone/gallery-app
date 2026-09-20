@@ -1,4 +1,4 @@
-package net.matrix.gallery.domain;
+package net.matrix.gallery.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -1,26 +1,14 @@
-package net.matrix.gallery.domain;
+package net.matrix.gallery.domain.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.MapKeyColumn;
-import jakarta.persistence.MapKeyEnumerated;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.matrix.gallery.domain.value.ImageRendition;
+import net.matrix.gallery.domain.value.RenditionType;
 
 /**
  * Aggregate root describing an artwork, its metadata, and externalized renditions stored in object
@@ -85,17 +73,17 @@ public class ArtEntity extends BaseDomainEntity {
   public ArtEntity() {}
 
   /** Thumbnail-sized rendition, if present. */
-  public ArtRendition getThumbnailPicture() {
+  public ImageRendition getThumbnailPicture() {
     return imageRendition.get(RenditionType.THUMBNAIL);
   }
 
   /** Gallery-sized rendition, if present. */
-  public ArtRendition getGalleryPicture() {
+  public ImageRendition getGalleryPicture() {
     return imageRendition.get(RenditionType.GALLERY);
   }
 
   /** Original or storage rendition, if present. */
-  public ArtRendition getStoragePicture() {
+  public ImageRendition getStoragePicture() {
     return imageRendition.get(RenditionType.ORIGINAL);
   }
 

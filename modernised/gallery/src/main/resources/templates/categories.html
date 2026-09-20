@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gallery categories</title>
+  </head>
+  <body>
+    <main>
+      <h1>Gallery categories</h1>
+      <p th:if="${#lists.isEmpty(categories)}">No categories are available.</p>
+      <ul th:unless="${#lists.isEmpty(categories)}">
+        <li th:each="category : ${categories}">
+          <a th:href="@{/categories/{id}(id=${category.id})}"
+             th:text="${category.categoryName}">Category</a>
+          <span th:text="|(${category.artEntityCount} artworks)|">(0 artworks)</span>
+        </li>
+      </ul>
+    </main>
+  </body>
+</html>
