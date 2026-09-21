@@ -50,13 +50,33 @@ class PublicBrowsingIntegrationTest {
   }
 
   @Test
+  void anonymousVisitorCanOpenHomePage() throws Exception {
+    mockMvc
+        .perform(get("/").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("home-shell")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("/categories")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/indeximage.jpg")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/ind_exhib.gif")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("/virtualExhibitions"))));
+  }
+
+  @Test
   void anonymousVisitorCanBrowseRenderedCategoryAndArtworkPages() throws Exception {
     String categoryHtml =
         mockMvc
             .perform(get("/categories").with(anonymous()))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-            .andExpect(content().string(org.hamcrest.Matchers.containsString("Gallery categories")))
+            .andExpect(
+                content().string(org.hamcrest.Matchers.containsString("Select a gallery below:")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("site-header")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("category-grid")))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -122,6 +142,26 @@ class PublicBrowsingIntegrationTest {
     mockMvc
         .perform(get("/artworks/images/missing.jpeg").with(anonymous()))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void anonymousVisitorCanLoadSiteShellAssets() throws Exception {
+    mockMvc
+        .perform(get("/images/background.jpg").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG));
+    mockMvc
+        .perform(get("/images/int_galleries.gif").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_GIF));
+    mockMvc
+        .perform(get("/images/indexlogo.gif").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_GIF));
+    mockMvc
+        .perform(get("/images/indeximage.jpg").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG));
   }
 
   @Test

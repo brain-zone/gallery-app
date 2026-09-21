@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <title>Barbara Israel Fine Arts - Anand's profile"></title>
+</head>
+<body>
+<main class="page-shell">
+    <header class="site-header"></header>
+
+    <div class="page-body">
+        <aside class="sidebar">
+            <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+        </aside>
+
+        <div class="content-divider"></div>
+
+        <section class="main-content">
+            <div class="breadcrumb">Bio</div>
+
+            <div class="bio-box">
+                <img
+                        class="bio-picture"
+                        th:src="@{/images/anand.png}"
+                        alt="Digital portrait of Anand Hemadri">
+
+                <p>
+                    Anand Hemadri is a software enthusiast, and a technology consultant, with about 25 years of experience in the industry.
+                </p>
+                
+                <p>
+                    <p>This project demonstrates how a legacy web application can be modernised incrementally using the <b>Strangler Fig pattern</b> rather than being rewritten wholesale.</p>
+                    <p>The original Java/Spring application is retained as a behavioural and visual reference while selected capabilities are replaced slice by slice with a modern Spring Boot implementation. The goal is to preserve working behaviour, reduce migration risk, and make every step independently testable and reversible.</p>
+                    <p>The exercise covers modern persistence, security, server-side rendering, automated testing, static asset handling, observability, containerisation, and eventually AI-assisted engineering workflows. Where the legacy application contains incomplete or accidental behaviour, the modern version preserves intent rather than blindly reproducing defects.</p>
+                    <p>This repository is therefore less about the gallery itself and more about demonstrating a practical approach to legacy modernisation: understand the existing system, establish a baseline, replace one vertical slice at a time, verify parity, and only then retire the old implementation.</p>
+                </p>
+
+                <div class="bio-contact">
+                    <span class="bio-contact__title">Contact Anand:</span><br><br>
+                    <a href="https://linkedin.com/in/anandhemadri">LinkedIn</a><br>
+                    <a href="https://brainzone.co.in">BrainZone Consulting</a>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>
