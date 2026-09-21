@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Barbara Israel Fine Arts</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+  </head>
+  <body>
+    <div class="page-shell admin-shell">
+      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <main class="admin-content">
+        <div class="breadcrumb">Administration Tool</div>
+        <section class="admin-box" aria-labelledby="admin-heading">
+          <h1 id="admin-heading">Welcome to the administration tool.</h1>
+          <p class="admin-intro">Log in below to begin.</p>
+
+          <p th:if="${param.error}" class="error">Invalid username or password.</p>
+          <p th:if="${param.logout}" class="success">You have been logged out.</p>
+
+          <form class="login-form" th:action="@{/login}" method="post">
+            <div class="form-row">
+              <label for="username">User Name:</label>
+              <input id="username" name="username" type="text" autocomplete="username" autofocus>
+            </div>
+            <div class="form-row">
+              <label for="password">Password:</label>
+              <input id="password" name="password" type="password" autocomplete="current-password">
+            </div>
+            <div class="form-actions">
+              <button type="submit">Submit</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

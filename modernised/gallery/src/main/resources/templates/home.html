@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Barbara Israel Fine Arts</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+  </head>
+  <body>
+    <main class="home-shell">
+      <img
+        class="home-logo"
+        th:src="@{/images/indexlogo.gif}"
+        alt="Barbara Israel Fine Arts">
+      <img
+        class="home-artwork"
+        th:src="@{/images/indeximage.jpg}"
+        alt="">
+      <img
+        class="home-divider"
+        th:src="@{/images/indexline.gif}"
+        alt="">
+      <nav class="home-nav" aria-label="Primary">
+        <a class="home-nav__item home-nav__galleries" th:href="@{/categories}">
+          <img th:src="@{/images/ind_galleries.gif}" alt="Galleries">
+        </a>
+        <span class="home-nav__item home-nav__exhibitions" aria-disabled="true">
+          <img th:src="@{/images/ind_exhib.gif}" alt="Virtual Exhibitions">
+        </span>
+        <a class="home-nav__item home-nav__bio" th:href="@{/bio}">
+          <img th:src="@{/images/ind_bio.gif}" alt="Bio">
+        </a>
+      </nav>
+    </main>
+  </body>
+</html>

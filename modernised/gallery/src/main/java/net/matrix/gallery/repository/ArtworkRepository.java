@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ArtworkRepository extends JpaRepository<ArtEntity, Long> {
 
+  Optional<ArtEntity> findByCatalogKeyIgnoreCase(String catalogKey);
+
   @EntityGraph(attributePaths = {"categories", "imageRendition"})
   @Query("SELECT DISTINCT artwork FROM ArtEntity artwork WHERE artwork.id = :id")
   Optional<ArtEntity> findDetailById(@Param("id") Long id);

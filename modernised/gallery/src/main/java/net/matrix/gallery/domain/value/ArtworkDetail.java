@@ -9,6 +9,8 @@ public record ArtworkDetail(
     Long id,
     String title,
     String subTitle,
+    String artist,
+    String genre,
     Instant uploadedDate,
     LocalDate displayDate,
     int width,
@@ -18,6 +20,7 @@ public record ArtworkDetail(
     String caption,
     boolean generalViewable,
     boolean privilegeViewable,
+    String primaryImageUrl,
     List<CategoryReference> categories,
     List<RenditionDetail> renditions) {
 

@@ -9,6 +9,8 @@ import java.util.Optional;
 import net.matrix.gallery.domain.model.ArtEntity;
 import net.matrix.gallery.domain.model.Category;
 import net.matrix.gallery.domain.value.CategorySummary;
+import net.matrix.gallery.domain.value.ImageRendition;
+import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.CategoryRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,6 +59,8 @@ class CategoryServiceTest {
     assertThat(detail.artworks().getFirst().id()).isEqualTo(9L);
     assertThat(detail.artworks().getFirst().title()).isEqualTo("Evening Sky");
     assertThat(detail.artworks().getFirst().subTitle()).isEqualTo("Sunset series");
+    assertThat(detail.artworks().getFirst().imageUrl())
+        .isEqualTo("/artworks/images/evening-sky.jpg");
     verify(categoryRepository).findWithArtEntitiesById(5L);
   }
 
@@ -90,6 +94,10 @@ class CategoryServiceTest {
     ReflectionTestUtils.setField(artwork, "id", id);
     artwork.setTitle(title);
     artwork.setSubTitle(subTitle);
+    artwork.addImageRendition(
+        RenditionType.GALLERY,
+        new ImageRendition(
+            "artworks/images/evening-sky.jpg", "image/jpeg", 10L, 1200, 800, "checksum"));
     return artwork;
   }
 }

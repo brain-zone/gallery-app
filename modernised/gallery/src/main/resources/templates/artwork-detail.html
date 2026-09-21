@@ -3,52 +3,83 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${artwork.title}">Artwork</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <title th:text="|${artwork.title} · Barbara Israel Fine Arts|">Artwork</title>
   </head>
   <body>
-    <main>
-      <nav><a th:href="@{/categories}">All categories</a></nav>
-      <h1 th:text="${artwork.title}">Artwork title</h1>
-      <p th:if="${artwork.subTitle}" th:text="${artwork.subTitle}">Subtitle</p>
-      <p th:if="${artwork.description}" th:text="${artwork.description}">Description</p>
+    <div class="page-shell">
+      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <div class="page-body">
+        <aside class="sidebar">
+          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <img class="sidebar-image" th:src="@{/images/leftimage1.jpg}" alt="">
+          <img class="sidebar-image" th:src="@{/images/leftimage2.jpg}" alt="">
+          <img class="sidebar-image" th:src="@{/images/leftimage3.jpg}" alt="">
+        </aside>
+        <div class="content-divider" aria-hidden="true"></div>
+        <main class="main-content">
+          <div class="breadcrumb">
+            <a th:href="@{/categories}">Galleries:</a>
+            <span th:if="${!#lists.isEmpty(artwork.categories)}"
+                  th:text="${artwork.categories[0].categoryName}">Category</span>
+            <span th:if="${#lists.isEmpty(artwork.categories)}">Artwork</span>
+          </div>
 
-      <dl>
-        <dt th:if="${artwork.displayDate}">Display date</dt>
-        <dd th:if="${artwork.displayDate}" th:text="${artwork.displayDate}">Date</dd>
-        <dt th:if="${artwork.media}">Media</dt>
-        <dd th:if="${artwork.media}" th:text="${artwork.media}">Media</dd>
-        <dt>Dimensions</dt>
-        <dd th:text="|${artwork.width} × ${artwork.height}|">0 × 0</dd>
-        <dt th:if="${artwork.caption}">Caption</dt>
-        <dd th:if="${artwork.caption}" th:text="${artwork.caption}">Caption</dd>
-      </dl>
+          <div class="gallery-stage">
+            <section class="gallery-text-area">
+              <h1 th:text="${artwork.title}">Artwork title</h1>
+              <p th:if="${artwork.subTitle}" th:text="${artwork.subTitle}">Subtitle</p>
+              <p th:if="${artwork.description}" th:text="${artwork.description}">Description</p>
 
-      <section th:unless="${#lists.isEmpty(artwork.categories)}">
-        <h2>Categories</h2>
-        <ul>
-          <li th:each="category : ${artwork.categories}">
-            <a th:href="@{/categories/{id}(id=${category.id})}"
-               th:text="${category.categoryName}">Category</a>
-          </li>
-        </ul>
-      </section>
+              <dl class="gallery-meta">
+                <dt th:if="${artwork.artist}">Artist</dt>
+                <dd th:if="${artwork.artist}" th:text="${artwork.artist}">Artist</dd>
+                <dt th:if="${artwork.genre}">Genre</dt>
+                <dd th:if="${artwork.genre}" th:text="${artwork.genre}">Genre</dd>
+                <dt th:if="${artwork.displayDate}">Date</dt>
+                <dd th:if="${artwork.displayDate}" th:text="${artwork.displayDate}">Date</dd>
+                <dt th:if="${artwork.media}">Media</dt>
+                <dd th:if="${artwork.media}" th:text="${artwork.media}">Media</dd>
+                <dt>Dimensions</dt>
+                <dd th:text="|${artwork.width} × ${artwork.height}|">0 × 0</dd>
+              </dl>
 
-      <section th:unless="${#lists.isEmpty(artwork.renditions)}">
-        <h2>Image renditions</h2>
-        <table>
-          <thead>
-            <tr><th>Type</th><th>Object key</th><th>Content type</th><th>Dimensions</th></tr>
-          </thead>
-          <tbody>
-            <tr th:each="rendition : ${artwork.renditions}">
-              <td th:text="${rendition.type}">Type</td>
-              <td th:text="${rendition.objectKey}">Object key</td>
-              <td th:text="${rendition.contentType}">Content type</td>
-              <td th:text="|${rendition.width} × ${rendition.height}|">0 × 0</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-    </main>
+              <div class="gallery-category-links" th:unless="${#lists.isEmpty(artwork.categories)}">
+                <span>Galleries</span>
+                <ul>
+                  <li th:each="category : ${artwork.categories}">
+                    <a th:href="@{/categories/{id}(id=${category.id})}"
+                       th:text="${category.categoryName}">Category</a>
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            <section class="gallery-image-area">
+              <a class="gallery-image-link"
+                 th:if="${artwork.primaryImageUrl}"
+                 th:href="${artwork.primaryImageUrl}">
+                <img class="gallery-primary-image"
+                     th:src="${artwork.primaryImageUrl}"
+                     th:alt="${artwork.title}">
+              </a>
+              <p class="empty-gallery" th:unless="${artwork.primaryImageUrl}">Image unavailable.</p>
+              <h2 class="gallery-image-title" th:text="${artwork.title}">Artwork title</h2>
+            </section>
+          </div>
+
+          <div class="gallery-thumbnails" th:unless="${#lists.isEmpty(artwork.renditions)}">
+            <div class="thumbnail-strip">
+              <a class="gallery-thumbnail"
+                 th:each="rendition : ${artwork.renditions}"
+                 th:href="${rendition.url}"
+                 th:title="|${artwork.title} · ${rendition.type}|">
+                <img th:src="${rendition.url}" th:alt="|${artwork.title} ${rendition.type} image|">
+              </a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
   </body>
 </html>

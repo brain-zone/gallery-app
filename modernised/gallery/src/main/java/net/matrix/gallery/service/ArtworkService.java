@@ -4,8 +4,11 @@ import java.util.Comparator;
 import java.util.List;
 import net.matrix.gallery.domain.model.ArtEntity;
 import net.matrix.gallery.domain.value.ArtworkDetail;
+import net.matrix.gallery.domain.value.ArtworkImageUrl;
 import net.matrix.gallery.domain.value.CategoryReference;
+import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionDetail;
+import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.ArtworkRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +46,7 @@ public class ArtworkService {
                     new RenditionDetail(
                         entry.getKey(),
                         entry.getValue().objectKey(),
+                        ArtworkImageUrl.fromObjectKey(entry.getValue().objectKey()),
                         entry.getValue().contentType(),
                         entry.getValue().sizeBytes(),
                         entry.getValue().width(),
@@ -54,6 +58,8 @@ public class ArtworkService {
         artwork.getId(),
         artwork.getTitle(),
         artwork.getSubTitle(),
+        artwork.getArtist(),
+        artwork.getGenre(),
         artwork.getUploadedDate(),
         artwork.getDisplayDate(),
         artwork.getWidth(),
@@ -63,7 +69,19 @@ public class ArtworkService {
         artwork.getCaption(),
         artwork.isGeneralViewable(),
         artwork.isPrivilegeViewable(),
+        primaryImageUrl(artwork),
         categories,
         renditions);
+  }
+
+  private String primaryImageUrl(ArtEntity artwork) {
+    ImageRendition rendition = artwork.getImageRendition().get(RenditionType.GALLERY);
+    if (rendition == null) {
+      rendition = artwork.getImageRendition().get(RenditionType.ORIGINAL);
+    }
+    if (rendition == null) {
+      rendition = artwork.getImageRendition().get(RenditionType.THUMBNAIL);
+    }
+    return rendition == null ? null : ArtworkImageUrl.fromObjectKey(rendition.objectKey());
   }
 }

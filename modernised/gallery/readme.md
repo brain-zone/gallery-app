@@ -1,88 +1,103 @@
+# Gallery Application — Modernised
 
-# Gallery Application — Modernised (Spring Boot 3 + Java 21)
+This module is the actively developed Spring Boot implementation of the Gallery Application. It modernises verified legacy behaviour in small, tested slices rather than claiming a complete feature-for-feature port.
 
-This module contains the **modernised implementation** of the Gallery Application,
-rewritten from the legacy `legacy/gallery` app into a clean, modern container ready stack.
+## Current stack
 
----
+| Area | Implementation |
+| --- | --- |
+| Language | Java 21 toolchain |
+| Framework | Spring Boot 3.5.8, Spring Web MVC |
+| Views | Thymeleaf templates with shared navigation and legacy-inspired CSS |
+| Security | Spring Security form login and HTTP Basic |
+| Persistence | Spring Data JPA and transactional services |
+| Schema | Forward-only Flyway migrations V0–V4 |
+| Database | H2 for local/runtime tests; PostgreSQL driver and Flyway support are included |
+| Build and quality | Gradle, JUnit 5, Spring tests, JaCoCo, Spotless, and SpotBugs |
 
-## Goals
+## Implemented behaviour
 
-- Preserve **core user flows** from the legacy app:
-  - Browse categories
-  - View artworks
-  - View exhibitions
-  - Express interest in an artwork
-  - Admin upload & curation
+### Curated catalog bootstrap
 
-- Replace the legacy stack with:
-  - **Spring Boot 3.x**
-  - **Java 21**
-  - **Spring Web MVC + Thymeleaf**
-  - **Spring Security (form login, OAuth2-ready)**
-  - **Spring Data JPA**
-  - **Flyway DB migrations**
-  - **Container-friendly Boot JAR**
+At application startup, `ArtworkCatalogStartup` invokes the transactional `ArtworkCatalogImporter` against `static/artworks/artworks.json`.
 
----
+The importer:
 
-## Tech Stack
+- validates all catalog records and referenced images before writing;
+- imports 10 artworks across Abstract, Landscape, Portrait, Sculpture, and Urban;
+- reuses category names with case-insensitive exact matching and creates only missing categories;
+- uses the source `logicalFileName`, normalized to lower case, as `ArtEntity.catalogKey`;
+- relies on the nullable unique `catalog_key` index introduced by Flyway V4;
+- updates an existing catalog record on repeat startup rather than creating a duplicate;
+- synchronizes one category and one `GALLERY` rendition per curated record;
+- derives image content type, byte size, dimensions, and SHA-256 checksum;
+- persists source artist and genre in dedicated fields;
+- validates price entries but does not persist them because the current domain has no price model.
 
-| Layer| Technology |
-|---|-----|
-| Language    | Java 21 |
-| Framework   | Spring Boot 3.5.x |
-| Web         | Spring Web MVC|
-| Security    | Spring Security (+ optional OAuth2 client)|
-| Persistence | Spring Data JPA|
-| DB Migration| Flyway|
-| Views       | Thymeleaf templates (planned)|
-| DB          | H2 (dev), PostgreSQL (prod-ready)|
-| Build Tool  | Gradle (Groovy DSL)|
+V4 also removes only the known synthetic V3 `Evening Sky` record by matching its seed metadata and rendition checksum. The original migrations remain forward-only.
 
----
+### Browse and shell routes
 
-## Project Layout
+| Method and route | Result | Anonymous access |
+| --- | --- | --- |
+| `GET /` | 302 redirect to `/categories` | Yes |
+| `GET /categories` | Thymeleaf category list | Yes |
+| `GET /categories/{id}` | Category with curated artwork images | Yes |
+| `GET /artworks/{id}` | Artwork image, artist, genre, metadata, categories and renditions | Yes |
+| `GET /login` | Custom Spring Security login page | Yes |
+| `GET /api/categories` | Category summaries as JSON | Yes |
+| `GET /api/categories/{id}` | Category and artwork summaries as JSON | Yes |
+| `GET /api/artworks/{id}` | Artwork detail as JSON | Yes |
+| `GET /css/**` | Gallery stylesheet | Yes |
+| `GET /artworks/images/**` | Bundled catalog image resources | Yes |
 
-```text
-modernised/gallery
-├── build.gradle
-├── settings.gradle
-└── src
-    ├── main
-    │   ├── java/net/matrix/gallery/...
-    │   └── resources
-    │       ├── application.properties
-    │       ├── templates/...
-    │       └── db/migration/...
-    └── test
-````
+Missing category, artwork, and image resources return 404. Other routes require authentication; for example, an anonymous `GET /actuator/health` returns 401. Error dispatches are permitted so public missing-resource responses remain 404 instead of becoming authentication failures.
 
----
+The login form posts to `/login`, uses Spring Security's `username` and `password` fields, and includes a CSRF token. No administrator application flow exists yet. With the current development configuration, Spring Boot supplies its generated development user/password at startup.
 
-## Running the App (Dev)
+The shared navigation currently renders Galleries, Virtual Exhibitions, and Bio. Only Galleries is implemented: Virtual Exhibitions is a placeholder and `/bio` has no controller/content in the modern module.
+
+## Persistence model and migrations
+
+- `ArtEntity`, `Category`, `Comment`, and rendition value objects form the current model.
+- `ArtworkRepository` and `CategoryRepository` provide aggregate loading and catalog/category identity lookups.
+- DTO-style immutable records isolate HTML/JSON browsing from entity serialization.
+- Flyway creates the schema and indexes, seeds the five categories, records the superseded V3 demo, and prepares the curated catalog in V4.
+- Hibernate runs with `ddl-auto=validate`; Flyway owns schema changes.
+
+## Build, test, and run
+
+From this module:
 
 ```bash
 cd modernised/gallery
-./gradlew clean bootRun
+
+./gradlew spotlessApply
+./gradlew test
+./gradlew build
+./gradlew bootRun
 ```
 
-Then open:
- - [http://localhost:8080](http://localhost:8080)
+Open [http://localhost:8080](http://localhost:8080). The root redirects to the category browser.
 
----
+The latest verification of the current uncommitted feature branch passed:
 
-## Migration Mapping
+- 64 automated tests;
+- the complete Gradle build, including Spotless, SpotBugs, JaCoCo, and packaging;
+- real HTTP checks for public pages/APIs, CSS, images, missing resources, login markup, and protected Actuator access;
+- startup import of 10 curated records and a repeat-safe importer test.
 
-This module is the “after” in a **before/after** pair:
+The repository GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `develop`, pull requests to `master`, and manual dispatch. A separate dependency-submission workflow is configured for `master` pushes and manual dispatch.
 
-* `legacy/gallery` -> original Spring MVC + Hibernate app
-* `modernised/gallery` -> refactored Spring Boot 3 implementation
+## Current limitations and future work
 
-Domain concepts like `Category`, `ArtEntity`, `Exhibition`, and `Interest` are preserved, but:
+- Exact legacy visual parity is incomplete; the current CSS is legacy-inspired only.
+- Virtual Exhibitions and Bio are not implemented in the modern module.
+- Artwork administration, browser upload, curation, update/delete, and interest capture are not implemented.
+- OAuth/OIDC is not configured.
+- Advanced gallery navigation and lightbox behaviour remain future work.
+- Catalog price metadata is validated but not persisted.
+- The JSON catalog references 10 JPEGs. Four WebP source assets and their manually created derivative files remain outside the catalog because no JSON record references them.
+- H2 is the verified local/test database. Production PostgreSQL configuration, containers, deployment, and observability remain future scope.
 
-* DAOs -> **Spring Data JPA repositories**
-* JSPs -> **Thymeleaf templates (planned; none yet)**
-* XML config -> **Boot auto-config + Java `@Configuration`**
-* Manual transactions -> **`@Transactional` service layer**
----
+For the historical behaviour and assets that guide later slices, see the [legacy module README](../../legacy/gallery/readme.md).

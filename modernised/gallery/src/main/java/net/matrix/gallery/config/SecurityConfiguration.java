@@ -20,8 +20,11 @@ public class SecurityConfiguration {
                 requests
                     .dispatcherTypeMatchers(DispatcherType.ERROR)
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/", "/login", "/css/**", "/images/**")
+                    .permitAll()
                     .requestMatchers(
                         HttpMethod.GET,
+                        "/bio",
                         "/categories",
                         "/categories/**",
                         "/artworks/**",
@@ -31,6 +34,7 @@ public class SecurityConfiguration {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+        .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/admin", true).permitAll())
         .httpBasic(withDefaults())
         .build();
   }

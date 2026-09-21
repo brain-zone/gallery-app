@@ -1,9 +1,29 @@
 package net.matrix.gallery.domain.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.MapKeyEnumerated;
+import jakarta.persistence.OneToMany;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +45,16 @@ public class ArtEntity extends BaseDomainEntity {
   Long id;
 
   @Getter @Setter private String title;
+
+  @Getter private String catalogKey;
+
+  public void setCatalogKey(String catalogKey) {
+    this.catalogKey = catalogKey == null ? null : catalogKey.strip().toLowerCase(Locale.ROOT);
+  }
+
+  @Getter @Setter private String artist;
+
+  @Getter @Setter private String genre;
 
   @Getter @Setter private String subTitle;
 

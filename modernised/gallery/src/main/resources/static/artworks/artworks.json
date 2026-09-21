@@ -1,0 +1,264 @@
+{
+  "artworks": [
+    {
+      "title": "The Abstract Dream",
+      "category": "Abstract",
+      "artist": "Liana Corvus",
+      "description": "An abstract painting in swirling reds and blues, depicting a dream-like sequence of geometric shapes.",
+      "fileName": "images/47791BC2-92F2-4DB1-9C0A-B686818C047F.jpeg",
+      "logicalFileName": "abstract_dream_painting.jpg",
+      "genre": "Surrealism",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 1000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 3000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 150.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "The Silent Watcher",
+      "category": "Portrait",
+      "artist": "Xavier Quinn",
+      "description": "A finely detailed pencil sketch of an elderly man staring into the distance, with deep wrinkles and a somber expression.",
+      "fileName": "images/864BF72E-0B8E-4DCD-90C0-A082FD245A9D.jpeg",
+      "logicalFileName": "silent_watcher_sketch.jpg",
+      "genre": "Contemporary",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 500.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 1200.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 80.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Sunrise over the Mountain",
+      "category": "Landscape",
+      "artist": "Maya Vasquez",
+      "description": "A serene photograph capturing the first light of dawn over a snow-covered mountain range.",
+      "fileName": "images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg",
+      "logicalFileName": "sunrise_mountain_photograph.jpg",
+      "genre": "Nature",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 300.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 900.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 50.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "The Bronze Sentinel",
+      "category": "Sculpture",
+      "artist": "Marcus Lorne",
+      "description": "A large bronze sculpture of a knight standing firm with a sword raised high, made with intricate detailing on the armor.",
+      "fileName": "images/3E8245FA-7F4D-46E4-95D5-92FAE138233B.jpeg",
+      "logicalFileName": "bronze_sentinel_sculpture.jpg",
+      "genre": "Contemporary",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 5000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 15000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 750.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Cosmic Dance",
+      "category": "Abstract",
+      "artist": "Aria Liora",
+      "description": "A vibrant painting of two dancers intertwined with a cosmic background, stars swirling around them as if they are part of the universe.",
+      "fileName": "images/1B947425-F257-4990-9E1A-63D422842768.jpeg",
+      "logicalFileName": "cosmic_dance_painting.jpg",
+      "genre": "Fantasy",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 2000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 6000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 350.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "The Forgotten Alley",
+      "category": "Urban",
+      "artist": "Emilio Dantes",
+      "description": "A black and white photograph of a quiet, forgotten alleyway, with cracked cobblestone streets and vines creeping up the walls.",
+      "fileName": "images/3FA4267C-282B-4687-838A-BACFDCF7D58E.jpeg",
+      "logicalFileName": "forgotten_alley_photograph.jpg",
+      "genre": "Urban",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 150.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 450.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 30.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Lady in Thought",
+      "category": "Portrait",
+      "artist": "Julia DeVries",
+      "description": "A pencil sketch of a woman sitting by a window, gazing out thoughtfully, with a slight hint of melancholy in her posture.",
+      "fileName": "images/96235F02-7388-4885-9392-9968E9E5A3F2.jpeg",
+      "logicalFileName": "lady_in_thought_sketch.jpg",
+      "genre": "Contemporary",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 400.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 1000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 60.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "The Iron Giant",
+      "category": "Sculpture",
+      "artist": "Icarus Cole",
+      "description": "A colossal sculpture of a humanoid robot made from scrap metal and rusted iron, standing against a stormy sky.",
+      "fileName": "images/CBC7BA7A-91C8-47DF-BB4C-FB357AE6CEA2.jpeg",
+      "logicalFileName": "iron_giant_sculpture.jpg",
+      "genre": "Modern",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 10000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 30000.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 1500.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "In the Garden of Light",
+      "category": "Abstract",
+      "artist": "Evelyn Nightshade",
+      "description": "A watercolor painting depicting an ethereal garden bathed in golden light, with flowers and trees shimmering as if glowing from within.",
+      "fileName": "images/8AAA1AB4-7920-4F49-AE2D-39AE10DC990F.jpeg",
+      "logicalFileName": "garden_of_light_painting.jpg",
+      "genre": "Fantasy",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 1500.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 4500.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 250.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Shattered Reflection",
+      "category": "Urban",
+      "artist": "Theo Blackwood",
+      "description": "A dramatic photograph of a broken mirror on the ground, with pieces reflecting different fragments of a cityscape at night.",
+      "fileName": "images/E82B2C82-5249-4C00-937B-3966E1397125.jpeg",
+      "logicalFileName": "shattered_reflection_photograph.jpg",
+      "genre": "Urban",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 400.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 1200.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 80.00,
+          "currency": "USD"
+        }
+      ]
+    }
+  ]
+}

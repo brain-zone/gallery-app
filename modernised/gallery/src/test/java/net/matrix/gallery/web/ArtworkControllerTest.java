@@ -63,6 +63,8 @@ class ArtworkControllerTest {
         9L,
         "Evening Sky",
         "Sunset series",
+        "Legacy Artist",
+        "Landscape",
         null,
         LocalDate.of(2026, 1, 15),
         1200,
@@ -72,11 +74,13 @@ class ArtworkControllerTest {
         "Serenity at dusk",
         true,
         false,
+        "/artworks/images/evening-sky.jpg",
         List.of(new CategoryReference(5L, "Landscapes")),
         List.of(
             new RenditionDetail(
                 RenditionType.GALLERY,
                 "gallery/evening-sky.jpg",
+                "/gallery/evening-sky.jpg",
                 "image/jpeg",
                 245760L,
                 1200,

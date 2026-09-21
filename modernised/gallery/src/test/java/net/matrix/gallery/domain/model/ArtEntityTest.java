@@ -1,6 +1,12 @@
 package net.matrix.gallery.domain.model;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionType;
@@ -12,6 +18,15 @@ import org.junit.jupiter.api.Test;
  * @author Anand Hemadri
  */
 class ArtEntityTest {
+
+  @Test
+  void normalizesCatalogKeyForStableDatabaseIdentity() {
+    ArtEntity artwork = new ArtEntity();
+
+    artwork.setCatalogKey("  Abstract_Dream_Painting.JPG  ");
+
+    assertEquals("abstract_dream_painting.jpg", artwork.getCatalogKey());
+  }
 
   @Test
   void addsRenditionAndFindsViaHelpers() {

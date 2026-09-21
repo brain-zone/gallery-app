@@ -56,7 +56,9 @@ class CategoryControllerTest {
             5L,
             "Landscapes",
             "Landscape works",
-            List.of(new ArtworkSummary(9L, "Evening Sky", "Sunset series")));
+            List.of(
+                new ArtworkSummary(
+                    9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg")));
     when(categoryService.getCategory(5L)).thenReturn(detail);
 
     mockMvc

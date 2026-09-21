@@ -3,19 +3,44 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gallery categories</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <title>Barbara Israel Fine Arts</title>
   </head>
   <body>
-    <main>
-      <h1>Gallery categories</h1>
-      <p th:if="${#lists.isEmpty(categories)}">No categories are available.</p>
-      <ul th:unless="${#lists.isEmpty(categories)}">
-        <li th:each="category : ${categories}">
-          <a th:href="@{/categories/{id}(id=${category.id})}"
-             th:text="${category.categoryName}">Category</a>
-          <span th:text="|(${category.artEntityCount} artworks)|">(0 artworks)</span>
-        </li>
-      </ul>
-    </main>
+    <div class="page-shell">
+      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <div class="page-body">
+        <aside class="sidebar">
+          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+        </aside>
+        <div class="content-divider" aria-hidden="true"></div>
+        <main class="main-content">
+          <div class="breadcrumb">Galleries</div>
+          <section class="category-box" aria-labelledby="gallery-instructions">
+            <p id="gallery-instructions" class="center-text">Select a gallery below:</p>
+            <p class="center-text" th:if="${#lists.isEmpty(categories)}">No categories are available.</p>
+            <div class="category-grid" th:unless="${#lists.isEmpty(categories)}">
+              <a class="category-card"
+                 th:each="category, iteration : ${categories}"
+                 th:href="@{/categories/{id}(id=${category.id})}">
+                <span class="category-card__image">
+                  <img th:if="${iteration.even}" th:src="@{/images/categoryimage1.gif}" alt="">
+                  <img th:if="${iteration.odd}" th:src="@{/images/categoryimage2.gif}" alt="">
+                </span>
+                <span class="category-card__name" th:text="${category.categoryName}">Category</span>
+                <span class="category-card__count"
+                      th:text="|${category.artEntityCount} artworks|">0 artworks</span>
+              </a>
+              <div class="recent-works" aria-disabled="true">
+                <span class="category-card__image">
+                  <img th:src="@{/images/categoryimage3.gif}" alt="">
+                </span>
+                <span class="category-card__name">Recent Works</span>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
   </body>
 </html>

@@ -3,22 +3,70 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${category.categoryName}">Gallery category</title>
+    <title th:text="|${category.categoryName} · Barbara Israel Fine Arts|">Gallery category</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
   </head>
   <body>
-    <main>
-      <nav><a th:href="@{/categories}">All categories</a></nav>
-      <h1 th:text="${category.categoryName}">Category</h1>
-      <p th:if="${category.categoryDescription}" th:text="${category.categoryDescription}">
-        Category description
-      </p>
-      <p th:if="${#lists.isEmpty(category.artworks)}">No artwork is available.</p>
-      <ul th:unless="${#lists.isEmpty(category.artworks)}">
-        <li th:each="artwork : ${category.artworks}">
-          <a th:href="@{/artworks/{id}(id=${artwork.id})}" th:text="${artwork.title}">Artwork</a>
-          <span th:if="${artwork.subTitle}" th:text="${artwork.subTitle}">Subtitle</span>
-        </li>
-      </ul>
-    </main>
+    <div class="page-shell">
+      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <div class="page-body">
+        <aside class="sidebar">
+          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <img class="sidebar-image" th:src="@{/images/leftimage1.jpg}" alt="">
+          <img class="sidebar-image" th:src="@{/images/leftimage2.jpg}" alt="">
+          <img class="sidebar-image" th:src="@{/images/leftimage3.jpg}" alt="">
+        </aside>
+        <div class="content-divider" aria-hidden="true"></div>
+        <main class="main-content">
+          <div class="breadcrumb">
+            <a th:href="@{/categories}">Galleries:</a>
+            <span th:text="${category.categoryName}">Category</span>
+          </div>
+
+          <div class="gallery-stage">
+            <section class="gallery-text-area">
+              <h1 th:text="${category.categoryName}">Category</h1>
+              <p th:if="${category.categoryDescription}" th:text="${category.categoryDescription}">
+                Category description
+              </p>
+              <p th:unless="${#lists.isEmpty(category.artworks)}">Select an artwork to view its details.</p>
+              <p th:if="${#lists.isEmpty(category.artworks)}">No artwork is available.</p>
+            </section>
+
+            <section class="gallery-image-area">
+              <p class="empty-gallery" th:if="${#lists.isEmpty(category.artworks)}">
+                No artwork is available.
+              </p>
+              <th:block th:unless="${#lists.isEmpty(category.artworks)}"
+                        th:with="featured=${category.artworks[0]}">
+                <a class="gallery-image-link" th:href="@{/artworks/{id}(id=${featured.id})}">
+                  <img th:if="${featured.imageUrl}"
+                       th:src="${featured.imageUrl}"
+                       th:alt="${featured.title}">
+                  <span th:unless="${featured.imageUrl}" th:text="${featured.title}">Artwork</span>
+                </a>
+                <h2 class="gallery-image-title" th:text="${featured.title}">Artwork</h2>
+              </th:block>
+            </section>
+          </div>
+
+          <div class="gallery-thumbnails" th:unless="${#lists.isEmpty(category.artworks)}">
+            <div class="thumbnail-strip">
+              <a class="gallery-thumbnail"
+                 th:each="artwork : ${category.artworks}"
+                 th:href="@{/artworks/{id}(id=${artwork.id})}"
+                 th:title="${artwork.title}">
+                <img th:if="${artwork.imageUrl}"
+                     th:src="${artwork.imageUrl}"
+                     th:alt="${artwork.title}">
+                <span class="visually-hidden" th:unless="${artwork.imageUrl}" th:text="${artwork.title}">
+                  Artwork
+                </span>
+              </a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
   </body>
 </html>
