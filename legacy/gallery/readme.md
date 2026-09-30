@@ -1,6 +1,6 @@
 # Gallery Application — Legacy Reference
 
-This module is the preserved historical implementation of the Gallery Application. It is reference material for the Spring Boot modernisation in [`../../modernised/gallery`](../../modernised/gallery/readme.md); it is not being modernised in place.
+This module is the preserved historical implementation of the Gallery Application. It remains the behavioural and visual reference for the Spring Boot modernisation in [`../../modernised/gallery`](../../modernised/gallery/readme.md); it is not being modernised in place.
 
 ## Historical stack
 
@@ -74,6 +74,10 @@ For modernisation work, inspect the following before reproducing a flow:
 - tightly coupled upload, image processing, authentication, controller, and JSP behaviour;
 - limited validation and error handling compared with the modern module.
 
-## Difference from the modern module
+## Relationship to the modern module
 
-The modern application currently reproduces only the verified public category/artwork browsing slice, curated catalog bootstrap, static image delivery, root redirect, custom login shell, and scoped security. Legacy exhibitions, Bio, interest capture, administration/upload, and exact theme behaviour remain future modernisation work.
+The modern application now implements the verified public category/artwork browsing slice, curated catalog bootstrap, static image delivery, restored splash home, public portfolio Bio, custom login, authenticated `/admin` landing page, scoped security, and the legacy visual-parity milestone.
+
+That parity milestone preserves the recognisable Barbara Israel Fine Arts shell, navigation, composition, and assets without claiming pixel-perfect reproduction or restoring obsolete implementation techniques. The legacy module remains the reference for behaviour and visual intent.
+
+Virtual Exhibitions and Recent Works remain intentionally incomplete. Interest capture, artwork upload, exhibition management, full administrator functionality, and advanced lightbox/navigation behaviour remain future modernisation work.
