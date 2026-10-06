@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.MemoryCacheImageInputStream;
@@ -183,9 +185,14 @@ public class ArtworkCatalogImporter {
           location + " image path must be relative to the catalog images directory");
     }
 
+    String relativeSourcePath =
+        StreamSupport.stream(sourcePath.spliterator(), false)
+            .map(Path::toString)
+            .collect(Collectors.joining("/"));
+
     Resource imageResource;
     try {
-      imageResource = catalogResource.createRelative(sourcePath.toString());
+      imageResource = catalogResource.createRelative(relativeSourcePath);
     } catch (IOException exception) {
       throw new ArtworkCatalogImportException(
           location + " image path could not be resolved: " + source.fileName(), exception);
@@ -232,13 +239,13 @@ public class ArtworkCatalogImporter {
     }
     String contentType = contentType(imageFileName.toString(), location);
     return new PreparedArtwork(
-        source.logicalFileName(),
+        normalize(source.logicalFileName()),
         source.title(),
         source.category(),
         source.artist(),
         source.description(),
         source.genre(),
-        "artworks/" + sourcePath,
+        "artworks/" + relativeSourcePath,
         contentType,
         (long) imageBytes.length,
         image.getWidth(),

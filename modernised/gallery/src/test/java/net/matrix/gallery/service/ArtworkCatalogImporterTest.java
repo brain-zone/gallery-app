@@ -34,6 +34,43 @@ class ArtworkCatalogImporterTest {
   @TempDir Path temporaryDirectory;
 
   @Test
+  void normalizesCatalogKeyBeforeLookupSoRepeatedImportRemainsIdempotent() throws IOException {
+    ImportHarness harness = new ImportHarness();
+    FileSystemResource catalog = catalog(singleArtwork("Abstract", " Abstract-One.JPG ", "One"));
+
+    var first = harness.importer.importCatalog(catalog);
+    var second = harness.importer.importCatalog(catalog);
+
+    assertThat(first.artworksCreated()).isOne();
+    assertThat(first.artworksUpdated()).isZero();
+
+    assertThat(second.artworksCreated()).isZero();
+    assertThat(second.artworksUpdated()).isOne();
+
+    assertThat(harness.artworks).hasSize(1);
+    assertThat(harness.artworks).containsKey("abstract-one.jpg");
+
+    ArtEntity artwork = harness.artworks.get("abstract-one.jpg");
+    assertThat(artwork.getCatalogKey()).isEqualTo("abstract-one.jpg");
+  }
+
+  @Test
+  void storesArtworkResourceKeyUsingForwardSlashes() throws IOException {
+    ImportHarness harness = new ImportHarness();
+    FileSystemResource catalog = catalog(singleArtwork("Abstract", "abstract-one.jpg", "One"));
+
+    harness.importer.importCatalog(catalog);
+
+    ArtEntity artwork = harness.artworks.get("abstract-one.jpg");
+
+    assertThat(artwork).isNotNull();
+    assertThat(artwork.getGalleryPicture()).isNotNull();
+    assertThat(artwork.getGalleryPicture().objectKey())
+        .isEqualTo("artworks/images/test.png")
+        .doesNotContain("\\");
+  }
+
+  @Test
   void parsesAndImportsTheBundledCatalogAcrossMultipleCategories() {
     ImportHarness harness = new ImportHarness();
 
