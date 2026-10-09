@@ -22,9 +22,16 @@ public class CategoryController {
     return "categories";
   }
 
-  @GetMapping("/categories/{id}")
-  public String showCategory(@PathVariable long id, Model model) {
-    model.addAttribute("category", categoryService.getCategory(id));
+  @GetMapping("/categories/{categoryId}")
+  public String showCategory(@PathVariable long categoryId, Model model) {
+    model.addAttribute("category", categoryService.getCategoryViewer(categoryId));
+    return "category-detail";
+  }
+
+  @GetMapping("/categories/{categoryId}/artworks/{artworkId}")
+  public String showCategoryArtwork(
+      @PathVariable long categoryId, @PathVariable long artworkId, Model model) {
+    model.addAttribute("category", categoryService.getCategoryViewer(categoryId, artworkId));
     return "category-detail";
   }
 }

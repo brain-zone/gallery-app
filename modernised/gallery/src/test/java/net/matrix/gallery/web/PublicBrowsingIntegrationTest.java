@@ -88,7 +88,11 @@ class PublicBrowsingIntegrationTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
         .andExpect(
             content().string(org.hamcrest.Matchers.containsString("Sunrise over the Mountain")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("/artworks/" + artworkId)))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "/categories/" + categoryId + "/artworks/" + artworkId)))
         .andExpect(content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_IMAGE_PATH)));
 
     mockMvc
@@ -105,6 +109,77 @@ class PublicBrowsingIntegrationTest {
                 .string(
                     org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(">Media</dt>"))))
         .andExpect(content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_IMAGE_PATH)));
+  }
+
+  @Test
+  void categoryViewerSelectsWithinCategoryContextAndRejectsOtherCategoryArtwork() throws Exception {
+    long abstractCategoryId =
+        categoryRepository.findByCategoryNameIgnoreCase("Abstract").orElseThrow().getId();
+    long cosmicDanceId =
+        artworkRepository
+            .findByCatalogKeyIgnoreCase("cosmic_dance_painting.jpg")
+            .orElseThrow()
+            .getId();
+    long gardenOfLightId =
+        artworkRepository
+            .findByCatalogKeyIgnoreCase("garden_of_light_painting.jpg")
+            .orElseThrow()
+            .getId();
+    long abstractDreamId =
+        artworkRepository
+            .findByCatalogKeyIgnoreCase("abstract_dream_painting.jpg")
+            .orElseThrow()
+            .getId();
+
+    mockMvc
+        .perform(get("/categories/{id}", abstractCategoryId).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "<h2 class=\"gallery-image-title\">Cosmic Dance</h2>")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)));
+
+    mockMvc
+        .perform(
+            get(
+                    "/categories/{categoryId}/artworks/{artworkId}",
+                    abstractCategoryId,
+                    gardenOfLightId)
+                .with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(">Abstract</span>")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "<h2 class=\"gallery-image-title\">In the Garden of Light</h2>")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "/categories/" + abstractCategoryId + "/artworks/" + cosmicDanceId)))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "/categories/" + abstractCategoryId + "/artworks/" + abstractDreamId)));
+
+    mockMvc
+        .perform(
+            get("/categories/{categoryId}/artworks/{artworkId}", abstractCategoryId, artworkId)
+                .with(anonymous()))
+        .andExpect(status().isNotFound());
   }
 
   @Test

@@ -9,8 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import net.matrix.gallery.domain.value.ArtworkSummary;
-import net.matrix.gallery.domain.value.CategoryDetail;
 import net.matrix.gallery.domain.value.CategorySummary;
+import net.matrix.gallery.domain.value.CategoryViewer;
 import net.matrix.gallery.service.CategoryService;
 import net.matrix.gallery.service.GalleryResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,14 +52,16 @@ class CategoryControllerTest {
   @Test
   void rendersCategoryDetailWithArtworkSummary() throws Exception {
     var detail =
-        new CategoryDetail(
+        new CategoryViewer(
             5L,
             "Landscapes",
             "Landscape works",
             List.of(
                 new ArtworkSummary(
-                    9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg")));
-    when(categoryService.getCategory(5L)).thenReturn(detail);
+                    9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg")),
+            new ArtworkSummary(
+                9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg"));
+    when(categoryService.getCategoryViewer(5L)).thenReturn(detail);
 
     mockMvc
         .perform(get("/categories/5"))
@@ -69,10 +71,33 @@ class CategoryControllerTest {
   }
 
   @Test
+  void rendersRequestedArtworkWithinCategoryContext() throws Exception {
+    var first = new ArtworkSummary(9L, "Evening Sky", null, "/artworks/images/evening-sky.jpg");
+    var selected = new ArtworkSummary(10L, "Morning Sky", null, "/artworks/images/morning-sky.jpg");
+    var viewer =
+        new CategoryViewer(5L, "Landscapes", "Landscape works", List.of(first, selected), selected);
+    when(categoryService.getCategoryViewer(5L, 10L)).thenReturn(viewer);
+
+    mockMvc
+        .perform(get("/categories/5/artworks/10"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("category-detail"))
+        .andExpect(model().attribute("category", viewer));
+  }
+
+  @Test
   void returnsNotFoundForMissingCategory() throws Exception {
-    when(categoryService.getCategory(404L))
+    when(categoryService.getCategoryViewer(404L))
         .thenThrow(new GalleryResourceNotFoundException("Category 404 was not found"));
 
     mockMvc.perform(get("/categories/404")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void returnsNotFoundWhenArtworkDoesNotBelongToCategory() throws Exception {
+    when(categoryService.getCategoryViewer(5L, 99L))
+        .thenThrow(new GalleryResourceNotFoundException("Artwork 99 was not found in category 5"));
+
+    mockMvc.perform(get("/categories/5/artworks/99")).andExpect(status().isNotFound());
   }
 }

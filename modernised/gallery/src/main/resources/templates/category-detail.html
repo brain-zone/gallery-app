@@ -37,8 +37,8 @@
               <p class="empty-gallery" th:if="${#lists.isEmpty(category.artworks)}">
                 No artwork is available.
               </p>
-              <th:block th:unless="${#lists.isEmpty(category.artworks)}"
-                        th:with="featured=${category.artworks[0]}">
+              <th:block th:if="${category.selectedArtwork}"
+                        th:with="featured=${category.selectedArtwork}">
                 <a class="gallery-image-link" th:href="@{/artworks/{id}(id=${featured.id})}">
                   <img th:if="${featured.imageUrl}"
                        th:src="${featured.imageUrl}"
@@ -54,7 +54,7 @@
             <div class="thumbnail-strip">
               <a class="gallery-thumbnail"
                  th:each="artwork : ${category.artworks}"
-                 th:href="@{/artworks/{id}(id=${artwork.id})}"
+                 th:href="@{/categories/{categoryId}/artworks/{artworkId}(categoryId=${category.id},artworkId=${artwork.id})}"
                  th:title="${artwork.title}">
                 <img th:if="${artwork.imageUrl}"
                      th:src="${artwork.imageUrl}"

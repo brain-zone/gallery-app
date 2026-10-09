@@ -73,6 +73,46 @@ class CategoryServiceTest {
   }
 
   @Test
+  void categoryViewerSelectsFirstDeterministicallyOrderedArtwork() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    artwork(10L, "Zulu Sky", null).addCategory(category);
+    artwork(9L, "alpha Field", null).addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var viewer = categoryService.getCategoryViewer(5L);
+
+    assertThat(viewer.artworks()).extracting(artwork -> artwork.id()).containsExactly(9L, 10L);
+    assertThat(viewer.selectedArtwork().id()).isEqualTo(9L);
+  }
+
+  @Test
+  void categoryViewerSelectsRequestedArtworkAndRetainsCategoryContext() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    artwork(9L, "Alpha Field", null).addCategory(category);
+    artwork(10L, "Zulu Sky", null).addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var viewer = categoryService.getCategoryViewer(5L, 10L);
+
+    assertThat(viewer.id()).isEqualTo(5L);
+    assertThat(viewer.categoryName()).isEqualTo("Landscapes");
+    assertThat(viewer.artworks()).extracting(artwork -> artwork.id()).containsExactly(9L, 10L);
+    assertThat(viewer.selectedArtwork().id()).isEqualTo(10L);
+  }
+
+  @Test
+  void categoryViewerRejectsArtworkOutsideRequestedCategory() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    artwork(9L, "Alpha Field", null).addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> categoryService.getCategoryViewer(5L, 99L))
+        .isInstanceOf(GalleryResourceNotFoundException.class)
+        .hasMessage("Artwork 99 was not found in category 5");
+  }
+
+  @Test
   void missingCategoryRaisesNotFoundException() {
     when(categoryRepository.findWithArtEntitiesById(404L)).thenReturn(Optional.empty());
 
