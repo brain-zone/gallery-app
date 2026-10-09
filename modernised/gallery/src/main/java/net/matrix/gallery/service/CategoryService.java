@@ -8,6 +8,7 @@ import net.matrix.gallery.domain.value.ArtworkImageUrl;
 import net.matrix.gallery.domain.value.ArtworkSummary;
 import net.matrix.gallery.domain.value.CategoryDetail;
 import net.matrix.gallery.domain.value.CategorySummary;
+import net.matrix.gallery.domain.value.CategoryViewer;
 import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.CategoryRepository;
@@ -53,6 +54,35 @@ public class CategoryService {
 
     return new CategoryDetail(
         category.getId(), category.getCategoryName(), category.getCategoryDescription(), artworks);
+  }
+
+  public CategoryViewer getCategoryViewer(long categoryId) {
+    CategoryDetail category = getCategory(categoryId);
+    ArtworkSummary selectedArtwork =
+        category.artworks().isEmpty() ? null : category.artworks().getFirst();
+    return toViewer(category, selectedArtwork);
+  }
+
+  public CategoryViewer getCategoryViewer(long categoryId, long artworkId) {
+    CategoryDetail category = getCategory(categoryId);
+    ArtworkSummary selectedArtwork =
+        category.artworks().stream()
+            .filter(artwork -> artwork.id() == artworkId)
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new GalleryResourceNotFoundException(
+                        "Artwork " + artworkId + " was not found in category " + categoryId));
+    return toViewer(category, selectedArtwork);
+  }
+
+  private CategoryViewer toViewer(CategoryDetail category, ArtworkSummary selectedArtwork) {
+    return new CategoryViewer(
+        category.id(),
+        category.categoryName(),
+        category.categoryDescription(),
+        category.artworks(),
+        selectedArtwork);
   }
 
   private String imageUrl(ArtEntity artwork) {
