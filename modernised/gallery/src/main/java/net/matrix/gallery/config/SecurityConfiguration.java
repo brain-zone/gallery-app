@@ -20,17 +20,13 @@ public class SecurityConfiguration {
                 requests
                     .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD)
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/", "/login", "/css/**", "/images/**")
+                    .requestMatchers(HttpMethod.GET, GallerySecuredPaths.PUBLIC_GET_PATHS)
                     .permitAll()
-                    .requestMatchers(
-                        HttpMethod.GET,
-                        "/bio",
-                        "/categories",
-                        "/categories/**",
-                        "/artworks/**",
-                        "/api/categories",
-                        "/api/categories/**",
-                        "/api/artworks/**")
+                    .requestMatchers(HttpMethod.HEAD, GallerySecuredPaths.PUBLIC_GET_PATHS)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, GallerySecuredPaths.PUBLIC_ASSET_PATHS)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.HEAD, GallerySecuredPaths.PUBLIC_ASSET_PATHS)
                     .permitAll()
                     .anyRequest()
                     .authenticated())
