@@ -440,6 +440,27 @@ img {
     font-size: 12px;
 }
 
+.error-box {
+    width: 518px;
+    min-height: 214px;
+    margin: 0 0 4px 40px;
+    padding: 48px 24px 24px;
+    border: 1px solid var(--color-accent);
+    background: var(--color-panel);
+    text-align: center;
+}
+
+.error-box h1 {
+    margin: 0 0 16px;
+    color: var(--color-heading);
+    font-size: 18px;
+    text-shadow: 2pt 2pt 2pt #9f7e53;
+}
+
+.error-box p {
+    margin: 8px 0;
+}
+
 .admin-box h1 {
     margin: 0 0 4px;
     color: var(--color-heading);
