@@ -60,7 +60,9 @@ class CategoryControllerTest {
                 new ArtworkSummary(
                     9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg")),
             new ArtworkSummary(
-                9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg"));
+                9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg"),
+            null,
+            null);
     when(categoryService.getCategoryViewer(5L)).thenReturn(detail);
 
     mockMvc
@@ -75,7 +77,8 @@ class CategoryControllerTest {
     var first = new ArtworkSummary(9L, "Evening Sky", null, "/artworks/images/evening-sky.jpg");
     var selected = new ArtworkSummary(10L, "Morning Sky", null, "/artworks/images/morning-sky.jpg");
     var viewer =
-        new CategoryViewer(5L, "Landscapes", "Landscape works", List.of(first, selected), selected);
+        new CategoryViewer(
+            5L, "Landscapes", "Landscape works", List.of(first, selected), selected, first, null);
     when(categoryService.getCategoryViewer(5L, 10L)).thenReturn(viewer);
 
     mockMvc

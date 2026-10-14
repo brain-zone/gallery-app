@@ -143,7 +143,14 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
-                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)));
+                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:"))));
 
     mockMvc
         .perform(
@@ -173,7 +180,29 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
-                        "/categories/" + abstractCategoryId + "/artworks/" + abstractDreamId)));
+                        "/categories/" + abstractCategoryId + "/artworks/" + abstractDreamId)))
+        .andExpect(
+            content()
+                .string(org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:")))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:")));
+
+    mockMvc
+        .perform(
+            get(
+                    "/categories/{categoryId}/artworks/{artworkId}",
+                    abstractCategoryId,
+                    abstractDreamId)
+                .with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            content()
+                .string(org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:"))));
 
     mockMvc
         .perform(

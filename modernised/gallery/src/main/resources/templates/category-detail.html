@@ -39,13 +39,36 @@
               </p>
               <th:block th:if="${category.selectedArtwork}"
                         th:with="featured=${category.selectedArtwork}">
-                <a class="gallery-image-link" th:href="@{/artworks/{id}(id=${featured.id})}">
+                <a class="gallery-image-link" th:href="${featured.imageUrl}">
                   <img th:if="${featured.imageUrl}"
                        th:src="${featured.imageUrl}"
                        th:alt="${featured.title}">
-                  <span th:unless="${featured.imageUrl}" th:text="${featured.title}">Artwork</span>
+                  <span th:unless="${featured.imageUrl}"
+                        th:text="${featured.title}">
+    Artwork
+  </span>
                 </a>
-                <h2 class="gallery-image-title" th:text="${featured.title}">Artwork</h2>
+                <div class="gallery-artwork-navigation">
+                  <a class="gallery-artwork-navigation__previous"
+                     th:if="${category.previousArtwork}"
+                     th:href="@{/categories/{categoryId}/artworks/{artworkId}(categoryId=${category.id},artworkId=${category.previousArtwork.id})}"
+                     th:aria-label="|Previous artwork: ${category.previousArtwork.title}|">
+                    <img th:src="@{/images/previous.gif}" alt="Previous artwork">
+                  </a>
+                  <span class="gallery-artwork-navigation__previous"
+                        th:unless="${category.previousArtwork}"
+                        aria-hidden="true"></span>
+                  <h2 class="gallery-image-title" th:text="${featured.title}">Artwork</h2>
+                  <a class="gallery-artwork-navigation__next"
+                     th:if="${category.nextArtwork}"
+                     th:href="@{/categories/{categoryId}/artworks/{artworkId}(categoryId=${category.id},artworkId=${category.nextArtwork.id})}"
+                     th:aria-label="|Next artwork: ${category.nextArtwork.title}|">
+                    <img th:src="@{/images/next.gif}" alt="Next artwork">
+                  </a>
+                  <span class="gallery-artwork-navigation__next"
+                        th:unless="${category.nextArtwork}"
+                        aria-hidden="true"></span>
+                </div>
               </th:block>
             </section>
           </div>
