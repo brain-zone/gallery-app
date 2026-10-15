@@ -8,7 +8,9 @@ public record CategoryViewer(
     String categoryName,
     String categoryDescription,
     List<ArtworkSummary> artworks,
-    ArtworkSummary selectedArtwork) {
+    ArtworkSummary selectedArtwork,
+    ArtworkSummary previousArtwork,
+    ArtworkSummary nextArtwork) {
 
   public CategoryViewer {
     artworks = List.copyOf(artworks);

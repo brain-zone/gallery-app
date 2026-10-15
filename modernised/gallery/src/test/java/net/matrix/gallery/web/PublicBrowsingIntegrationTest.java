@@ -143,7 +143,14 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
-                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)));
+                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:"))));
 
     mockMvc
         .perform(
@@ -173,7 +180,29 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
-                        "/categories/" + abstractCategoryId + "/artworks/" + abstractDreamId)));
+                        "/categories/" + abstractCategoryId + "/artworks/" + abstractDreamId)))
+        .andExpect(
+            content()
+                .string(org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:")))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:")));
+
+    mockMvc
+        .perform(
+            get(
+                    "/categories/{categoryId}/artworks/{artworkId}",
+                    abstractCategoryId,
+                    abstractDreamId)
+                .with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            content()
+                .string(org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:"))));
 
     mockMvc
         .perform(
@@ -263,11 +292,43 @@ class PublicBrowsingIntegrationTest {
     assertThat(httpStatus("/actuator/health")).isEqualTo(401);
   }
 
+  @Test
+  void realHttpErrorDispatchRendersBrandedNotFoundAndAuthenticationPages() throws Exception {
+    HttpResponse<String> notFound = htmlResponse("/categories/" + Long.MAX_VALUE);
+    assertThat(notFound.statusCode()).isEqualTo(404);
+    assertThat(notFound.body())
+        .contains("Page not found", "Return to the public gallery")
+        .doesNotContain("GalleryResourceNotFoundException", "Category 9223372036854775807");
+
+    HttpResponse<String> unauthorized = httpResponse("/actuator/health");
+    assertThat(unauthorized.statusCode()).isEqualTo(401);
+    assertThat(unauthorized.headers().firstValue("WWW-Authenticate"))
+        .hasValue("Basic realm=\"Realm\"");
+    assertThat(unauthorized.body())
+        .contains("Authentication required", "return to the public gallery")
+        .doesNotContain("Exception", "stack trace");
+  }
+
   private int httpStatus(String path) throws IOException, InterruptedException {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
     return HttpClient.newHttpClient()
         .send(request, HttpResponse.BodyHandlers.discarding())
         .statusCode();
+  }
+
+  private HttpResponse<String> httpResponse(String path) throws IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+    return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+  }
+
+  private HttpResponse<String> htmlResponse(String path) throws IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+            .header("Accept", MediaType.TEXT_HTML_VALUE)
+            .GET()
+            .build();
+    return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
   }
 }

@@ -77,12 +77,22 @@ public class CategoryService {
   }
 
   private CategoryViewer toViewer(CategoryDetail category, ArtworkSummary selectedArtwork) {
+    int selectedIndex = category.artworks().indexOf(selectedArtwork);
+    ArtworkSummary previousArtwork =
+        selectedIndex > 0 ? category.artworks().get(selectedIndex - 1) : null;
+    ArtworkSummary nextArtwork =
+        selectedIndex >= 0 && selectedIndex < category.artworks().size() - 1
+            ? category.artworks().get(selectedIndex + 1)
+            : null;
+
     return new CategoryViewer(
         category.id(),
         category.categoryName(),
         category.categoryDescription(),
         category.artworks(),
-        selectedArtwork);
+        selectedArtwork,
+        previousArtwork,
+        nextArtwork);
   }
 
   private String imageUrl(ArtEntity artwork) {
