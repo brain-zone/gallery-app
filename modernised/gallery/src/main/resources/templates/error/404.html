@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page not found · Barbara Israel Fine Arts</title>
+    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <div class="page-body">
+        <aside class="sidebar">
+          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <img class="sidebar-image" th:src="@{/images/leftimage1.jpg}" alt="">
+          <img class="sidebar-image" th:src="@{/images/leftimage2.jpg}" alt="">
+          <img class="sidebar-image" th:src="@{/images/leftimage3.jpg}" alt="">
+        </aside>
+        <div class="content-divider" aria-hidden="true"></div>
+        <main class="main-content">
+          <section class="error-box">
+            <h1>Page not found</h1>
+            <p>The requested page or resource could not be found.</p>
+            <p><a th:href="@{/}">Return to the public gallery</a></p>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

@@ -101,6 +101,38 @@ class CategoryServiceTest {
   }
 
   @Test
+  void categoryViewerProvidesPreviousAndNextWithoutWrapping() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    artwork(9L, "Alpha Field", null).addCategory(category);
+    artwork(10L, "Middle Meadow", null).addCategory(category);
+    artwork(11L, "Zulu Sky", null).addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var first = categoryService.getCategoryViewer(5L, 9L);
+    var middle = categoryService.getCategoryViewer(5L, 10L);
+    var last = categoryService.getCategoryViewer(5L, 11L);
+
+    assertThat(first.previousArtwork()).isNull();
+    assertThat(first.nextArtwork().id()).isEqualTo(10L);
+    assertThat(middle.previousArtwork().id()).isEqualTo(9L);
+    assertThat(middle.nextArtwork().id()).isEqualTo(11L);
+    assertThat(last.previousArtwork().id()).isEqualTo(10L);
+    assertThat(last.nextArtwork()).isNull();
+  }
+
+  @Test
+  void singleArtworkCategoryHasNoPreviousOrNext() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    artwork(9L, "Only Artwork", null).addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var viewer = categoryService.getCategoryViewer(5L);
+
+    assertThat(viewer.previousArtwork()).isNull();
+    assertThat(viewer.nextArtwork()).isNull();
+  }
+
+  @Test
   void categoryViewerRejectsArtworkOutsideRequestedCategory() {
     Category category = category(5L, "Landscapes", "Landscape works");
     artwork(9L, "Alpha Field", null).addCategory(category);
