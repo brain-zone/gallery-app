@@ -75,4 +75,14 @@ class AdminAuthenticationIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(unauthenticated());
   }
+
+  @Test
+  void galleryJavaScriptRemainsPublic() throws Exception {
+    mockMvc
+        .perform(get("/js/artwork-lightbox.js").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/javascript"))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("dialog.showModal()")))
+        .andExpect(unauthenticated());
+  }
 }

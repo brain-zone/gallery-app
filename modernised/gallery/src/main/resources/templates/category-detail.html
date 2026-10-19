@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="|${category.categoryName} · Barbara Israel Fine Arts|">Gallery category</title>
     <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <script defer th:src="@{/js/artwork-lightbox.js}"></script>
   </head>
   <body>
     <div class="page-shell">
@@ -41,10 +42,34 @@
                         th:with="featured=${category.selectedArtwork}">
                 <a class="gallery-image-link"
                    th:if="${category.featuredImageUrl}"
-                   th:href="${category.featuredImageLinkUrl}">
+                   th:href="${category.featuredImageLinkUrl}"
+                   data-artwork-lightbox-trigger>
                   <img th:src="${category.featuredImageUrl}"
                        th:alt="${featured.title}">
                 </a>
+                <dialog class="artwork-lightbox"
+                        th:if="${category.featuredImageUrl}"
+                        aria-labelledby="artwork-lightbox-title">
+                  <div class="artwork-lightbox__content">
+                    <img class="artwork-lightbox__image"
+                         th:src="${category.featuredImageLinkUrl}"
+                         th:alt="${featured.title}">
+                    <div class="artwork-lightbox__details">
+                      <div>
+                        <h2 id="artwork-lightbox-title" th:text="${featured.title}">Artwork</h2>
+                        <p th:if="${category.selectedArtworkArtist}"
+                           th:text="|Artwork by ${category.selectedArtworkArtist}|">
+                          Artwork by Artist
+                        </p>
+                      </div>
+                      <form method="dialog">
+                        <button class="artwork-lightbox__close" type="submit" autofocus>
+                          <img th:src="@{/images/closelabel.gif}" alt="Close">
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </dialog>
                 <span th:unless="${category.featuredImageUrl}"
                       th:text="${featured.title}">
     Artwork
