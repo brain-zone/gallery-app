@@ -98,6 +98,13 @@ class PublicBrowsingIntegrationTest {
                     org.hamcrest.Matchers.containsString(
                         "/categories/" + categoryId + "/artworks/" + artworkId)))
         .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("Artwork by Maya Vasquez")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString("href=\"/artworks/" + artworkId + "\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("View artwork details")))
+        .andExpect(
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(

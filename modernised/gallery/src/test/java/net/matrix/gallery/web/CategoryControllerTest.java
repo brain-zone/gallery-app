@@ -63,6 +63,7 @@ class CategoryControllerTest {
                 9L, "Evening Sky", "Sunset series", "/artworks/images/evening-sky.jpg"),
             null,
             null,
+            "Legacy Artist",
             "/artworks/images/gallery-evening-sky.jpg",
             "/artworks/images/original-evening-sky.jpg");
     when(categoryService.getCategoryViewer(5L)).thenReturn(detail);
@@ -87,6 +88,7 @@ class CategoryControllerTest {
             selected,
             first,
             null,
+            "Legacy Artist",
             "/artworks/images/gallery-morning-sky.jpg",
             "/artworks/images/original-morning-sky.jpg");
     when(categoryService.getCategoryViewer(5L, 10L)).thenReturn(viewer);

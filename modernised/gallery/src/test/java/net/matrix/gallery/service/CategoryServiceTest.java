@@ -106,6 +106,7 @@ class CategoryServiceTest {
   void categoryViewerUsesDistinctRenditionPrioritiesForThumbnailDisplayAndLink() {
     Category category = category(5L, "Landscapes", "Landscape works");
     ArtEntity artwork = artwork(9L, "Evening Sky", null);
+    artwork.setArtist("Legacy Artist");
     addRendition(artwork, RenditionType.ORIGINAL, "original.jpg");
     addRendition(artwork, RenditionType.THUMBNAIL, "thumbnail.jpg");
     artwork.addCategory(category);
@@ -114,6 +115,7 @@ class CategoryServiceTest {
     var viewer = categoryService.getCategoryViewer(5L);
 
     assertThat(viewer.selectedArtwork().imageUrl()).isEqualTo("/artworks/images/thumbnail.jpg");
+    assertThat(viewer.selectedArtworkArtist()).isEqualTo("Legacy Artist");
     assertThat(viewer.featuredImageUrl()).isEqualTo("/artworks/images/evening-sky.jpg");
     assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/artworks/images/original.jpg");
     verify(categoryRepository).findWithArtEntitiesById(5L);

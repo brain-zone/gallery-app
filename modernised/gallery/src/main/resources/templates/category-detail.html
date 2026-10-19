@@ -70,6 +70,13 @@
                         th:unless="${category.nextArtwork}"
                         aria-hidden="true"></span>
                 </div>
+                <p th:if="${category.selectedArtworkArtist}"
+                   th:text="|Artwork by ${category.selectedArtworkArtist}|">
+                  Artwork by Artist
+                </p>
+                <p>
+                  <a th:href="@{/artworks/{id}(id=${featured.id})}">View artwork details</a>
+                </p>
               </th:block>
             </section>
           </div>
