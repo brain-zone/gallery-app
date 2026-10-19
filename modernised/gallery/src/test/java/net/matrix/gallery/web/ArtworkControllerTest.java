@@ -47,7 +47,47 @@ class ArtworkControllerTest {
         .perform(get("/artworks/9"))
         .andExpect(status().isOk())
         .andExpect(view().name("artwork-detail"))
+        .andExpect(model().attribute("artwork", artwork))
+        .andExpect(model().attribute("displayImageUrl", "/gallery/evening-sky.jpg"));
+  }
+
+  @Test
+  void selectsOriginalForHtmlDisplayWithoutChangingRestPrimaryImage() throws Exception {
+    ArtworkDetail artwork =
+        artworkDetail(
+            List.of(
+                rendition(RenditionType.GALLERY, "/gallery/evening-sky.jpg"),
+                rendition(RenditionType.ORIGINAL, "/original/evening-sky.jpg"),
+                rendition(RenditionType.THUMBNAIL, "/thumbnail/evening-sky.jpg")));
+    when(artworkService.getArtwork(9L)).thenReturn(artwork);
+
+    mockMvc
+        .perform(get("/artworks/9"))
+        .andExpect(status().isOk())
+        .andExpect(model().attribute("displayImageUrl", "/original/evening-sky.jpg"))
         .andExpect(model().attribute("artwork", artwork));
+  }
+
+  @Test
+  void fallsBackToGalleryThenThumbnailForHtmlDisplay() throws Exception {
+    ArtworkDetail galleryArtwork =
+        artworkDetail(
+            List.of(
+                rendition(RenditionType.GALLERY, "/gallery/evening-sky.jpg"),
+                rendition(RenditionType.THUMBNAIL, "/thumbnail/evening-sky.jpg")));
+    ArtworkDetail thumbnailArtwork =
+        artworkDetail(List.of(rendition(RenditionType.THUMBNAIL, "/thumbnail/evening-sky.jpg")));
+    when(artworkService.getArtwork(9L)).thenReturn(galleryArtwork);
+    when(artworkService.getArtwork(10L)).thenReturn(thumbnailArtwork);
+
+    mockMvc
+        .perform(get("/artworks/9"))
+        .andExpect(status().isOk())
+        .andExpect(model().attribute("displayImageUrl", "/gallery/evening-sky.jpg"));
+    mockMvc
+        .perform(get("/artworks/10"))
+        .andExpect(status().isOk())
+        .andExpect(model().attribute("displayImageUrl", "/thumbnail/evening-sky.jpg"));
   }
 
   @Test
@@ -59,6 +99,20 @@ class ArtworkControllerTest {
   }
 
   static ArtworkDetail artworkDetail() {
+    return artworkDetail(
+        List.of(
+            new RenditionDetail(
+                RenditionType.GALLERY,
+                "gallery/evening-sky.jpg",
+                "/gallery/evening-sky.jpg",
+                "image/jpeg",
+                245760L,
+                1200,
+                800,
+                "checksum")));
+  }
+
+  static ArtworkDetail artworkDetail(List<RenditionDetail> renditions) {
     return new ArtworkDetail(
         9L,
         "Evening Sky",
@@ -76,15 +130,18 @@ class ArtworkControllerTest {
         false,
         "/artworks/images/evening-sky.jpg",
         List.of(new CategoryReference(5L, "Landscapes")),
-        List.of(
-            new RenditionDetail(
-                RenditionType.GALLERY,
-                "gallery/evening-sky.jpg",
-                "/gallery/evening-sky.jpg",
-                "image/jpeg",
-                245760L,
-                1200,
-                800,
-                "checksum")));
+        renditions);
+  }
+
+  private static RenditionDetail rendition(RenditionType type, String url) {
+    return new RenditionDetail(
+        type,
+        type.name().toLowerCase() + "/evening-sky.jpg",
+        url,
+        "image/jpeg",
+        245760L,
+        1200,
+        800,
+        "checksum");
   }
 }

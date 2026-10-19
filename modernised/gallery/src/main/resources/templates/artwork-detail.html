@@ -57,24 +57,31 @@
 
             <section class="gallery-image-area">
               <a class="gallery-image-link"
-                 th:if="${artwork.primaryImageUrl}"
-                 th:href="${artwork.primaryImageUrl}">
+                 th:if="${displayImageUrl}"
+                 th:href="${displayImageUrl}">
                 <img class="gallery-primary-image"
-                     th:src="${artwork.primaryImageUrl}"
+                     th:src="${displayImageUrl}"
                      th:alt="${artwork.title}">
               </a>
-              <p class="empty-gallery" th:unless="${artwork.primaryImageUrl}">Image unavailable.</p>
+              <p class="empty-gallery" th:unless="${displayImageUrl}">Image unavailable.</p>
               <h2 class="gallery-image-title" th:text="${artwork.title}">Artwork title</h2>
             </section>
           </div>
 
-          <div class="gallery-thumbnails" th:unless="${#lists.isEmpty(artwork.renditions)}">
+          <div class="gallery-thumbnails artwork-renditions"
+               th:unless="${#lists.isEmpty(artwork.renditions)}">
             <div class="thumbnail-strip">
-              <a class="gallery-thumbnail"
+              <a class="artwork-rendition"
                  th:each="rendition : ${artwork.renditions}"
                  th:href="${rendition.url}"
                  th:title="|${artwork.title} · ${rendition.type}|">
-                <img th:src="${rendition.url}" th:alt="|${artwork.title} ${rendition.type} image|">
+                <img class="artwork-rendition__image"
+                     th:src="${rendition.url}"
+                     th:alt="|${artwork.title} ${rendition.type} image|">
+                <span class="artwork-rendition__label" th:text="${rendition.type}">ORIGINAL</span>
+                <span class="artwork-rendition__dimensions"
+                      th:if="${rendition.width != null && rendition.height != null}"
+                      th:text="|${rendition.width} × ${rendition.height}|">1024 × 1024</span>
               </a>
             </div>
           </div>
