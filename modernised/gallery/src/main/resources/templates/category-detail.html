@@ -67,7 +67,8 @@
                     <div class="artwork-lightbox__details">
                       <div>
                         <h2 id="artwork-lightbox-title" th:text="${featured.title}">Artwork</h2>
-                        <p th:if="${category.selectedArtworkArtist}"
+                        <p data-artwork-lightbox-artist
+                           th:hidden="${category.selectedArtworkArtist == null}"
                            th:text="|Artwork by ${category.selectedArtworkArtist}|">
                           Artwork by Artist
                         </p>
@@ -78,6 +79,10 @@
                         </button>
                       </form>
                     </div>
+                    <nav aria-label="Lightbox artwork navigation">
+                      <button type="button" data-artwork-lightbox-previous>Previous</button>
+                      <button type="button" data-artwork-lightbox-next>Next</button>
+                    </nav>
                   </div>
                 </dialog>
                 <div hidden aria-hidden="true" data-lightbox-artworks>

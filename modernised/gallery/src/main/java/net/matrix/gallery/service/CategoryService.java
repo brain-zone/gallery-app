@@ -135,11 +135,7 @@ public class CategoryService {
         artwork.getId(),
         artwork.getTitle(),
         artwork.getArtist(),
-        imageUrl(
-            artwork,
-            RenditionType.ORIGINAL,
-            RenditionType.GALLERY,
-            RenditionType.THUMBNAIL));
+        imageUrl(artwork, RenditionType.ORIGINAL, RenditionType.GALLERY, RenditionType.THUMBNAIL));
   }
 
   private String imageUrl(ArtEntity artwork, RenditionType... priorities) {
