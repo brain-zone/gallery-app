@@ -58,6 +58,7 @@
                 </a>
                 <dialog class="artwork-lightbox"
                         th:if="${category.featuredImageUrl}"
+                        th:data-selected-artwork-id="${featured.id}"
                         aria-labelledby="artwork-lightbox-title">
                   <div class="artwork-lightbox__content">
                     <img class="artwork-lightbox__image"
@@ -79,6 +80,15 @@
                     </div>
                   </div>
                 </dialog>
+                <div hidden aria-hidden="true" data-lightbox-artworks>
+                  <div th:each="artwork : ${category.lightboxArtworks}"
+                       data-lightbox-artwork
+                       th:data-artwork-id="${artwork.id}"
+                       th:data-title="${artwork.title}"
+                       data-artist=""
+                       data-image-url=""
+                       th:attrappend="data-artist=${artwork.artist},data-image-url=${artwork.imageUrl}"></div>
+                </div>
                 <span th:unless="${category.featuredImageUrl}"
                       th:text="${featured.title}">
     Artwork
