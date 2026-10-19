@@ -39,15 +39,16 @@
               </p>
               <th:block th:if="${category.selectedArtwork}"
                         th:with="featured=${category.selectedArtwork}">
-                <a class="gallery-image-link" th:href="${featured.imageUrl}">
-                  <img th:if="${featured.imageUrl}"
-                       th:src="${featured.imageUrl}"
+                <a class="gallery-image-link"
+                   th:if="${category.featuredImageUrl}"
+                   th:href="${category.featuredImageLinkUrl}">
+                  <img th:src="${category.featuredImageUrl}"
                        th:alt="${featured.title}">
-                  <span th:unless="${featured.imageUrl}"
-                        th:text="${featured.title}">
+                </a>
+                <span th:unless="${category.featuredImageUrl}"
+                      th:text="${featured.title}">
     Artwork
   </span>
-                </a>
                 <div class="gallery-artwork-navigation">
                   <a class="gallery-artwork-navigation__previous"
                      th:if="${category.previousArtwork}"

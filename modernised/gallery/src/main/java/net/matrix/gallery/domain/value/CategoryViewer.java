@@ -10,7 +10,9 @@ public record CategoryViewer(
     List<ArtworkSummary> artworks,
     ArtworkSummary selectedArtwork,
     ArtworkSummary previousArtwork,
-    ArtworkSummary nextArtwork) {
+    ArtworkSummary nextArtwork,
+    String featuredImageUrl,
+    String featuredImageLinkUrl) {
 
   public CategoryViewer {
     artworks = List.copyOf(artworks);
