@@ -26,12 +26,21 @@
 
           <div class="gallery-stage">
             <section class="gallery-text-area">
-              <h1 th:text="${category.categoryName}">Category</h1>
-              <p th:if="${category.categoryDescription}" th:text="${category.categoryDescription}">
-                Category description
-              </p>
-              <p th:unless="${#lists.isEmpty(category.artworks)}">Select an artwork to view its details.</p>
-              <p th:if="${#lists.isEmpty(category.artworks)}">No artwork is available.</p>
+              <th:block th:if="${category.selectedArtwork}">
+                <h1 th:text="${category.selectedArtwork.title}">Artwork</h1>
+                <p th:if="${category.selectedArtworkDescription}"
+                   th:text="${category.selectedArtworkDescription}">
+                  Artwork description
+                </p>
+              </th:block>
+              <th:block th:if="${#lists.isEmpty(category.artworks)}">
+                <h1 th:text="${category.categoryName}">Category</h1>
+                <p th:if="${category.categoryDescription}"
+                   th:text="${category.categoryDescription}">
+                  Category description
+                </p>
+                <p>No artwork is available.</p>
+              </th:block>
             </section>
 
             <section class="gallery-image-area">

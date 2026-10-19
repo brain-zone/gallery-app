@@ -111,6 +111,7 @@ public class CategoryService {
         previousArtwork,
         nextArtwork,
         selectedEntity == null ? null : selectedEntity.getArtist(),
+        selectedEntity == null ? null : selectedEntity.getDescription(),
         selectedEntity == null
             ? null
             : imageUrl(

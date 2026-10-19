@@ -96,6 +96,17 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
+                        "A serene photograph capturing the first light of dawn over a snow-covered mountain range.")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString(
+                            "Select an artwork to view its details."))))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
                         "/categories/" + categoryId + "/artworks/" + artworkId)))
         .andExpect(
             content().string(org.hamcrest.Matchers.containsString("Artwork by Maya Vasquez")))
@@ -195,6 +206,11 @@ class PublicBrowsingIntegrationTest {
                 .string(
                     org.hamcrest.Matchers.containsString(
                         "<h2 class=\"gallery-image-title\">In the Garden of Light</h2>")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "A watercolor painting depicting an ethereal garden bathed in golden light, with flowers and trees shimmering as if glowing from within.")))
         .andExpect(
             content()
                 .string(

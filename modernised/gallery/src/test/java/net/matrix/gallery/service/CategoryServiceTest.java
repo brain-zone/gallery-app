@@ -90,16 +90,28 @@ class CategoryServiceTest {
   @Test
   void categoryViewerSelectsRequestedArtworkAndRetainsCategoryContext() {
     Category category = category(5L, "Landscapes", "Landscape works");
-    artwork(9L, "Alpha Field", null).addCategory(category);
-    artwork(10L, "Zulu Sky", null).addCategory(category);
+    ArtEntity alpha = artwork(9L, "Alpha Field", null);
+    alpha.setDescription("A quiet field at dawn.");
+    alpha.addCategory(category);
+    ArtEntity zulu = artwork(10L, "Zulu Sky", null);
+    zulu.setDescription("A dramatic evening sky.");
+    zulu.addCategory(category);
     when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
 
-    var viewer = categoryService.getCategoryViewer(5L, 10L);
+    var initialViewer = categoryService.getCategoryViewer(5L);
+    var changedViewer = categoryService.getCategoryViewer(5L, 10L);
 
-    assertThat(viewer.id()).isEqualTo(5L);
-    assertThat(viewer.categoryName()).isEqualTo("Landscapes");
-    assertThat(viewer.artworks()).extracting(artwork -> artwork.id()).containsExactly(9L, 10L);
-    assertThat(viewer.selectedArtwork().id()).isEqualTo(10L);
+    assertThat(initialViewer.selectedArtwork().title()).isEqualTo("Alpha Field");
+    assertThat(initialViewer.selectedArtworkDescription()).isEqualTo("A quiet field at dawn.");
+    assertThat(changedViewer.id()).isEqualTo(5L);
+    assertThat(changedViewer.categoryName()).isEqualTo("Landscapes");
+    assertThat(changedViewer.artworks())
+        .extracting(artwork -> artwork.id())
+        .containsExactly(9L, 10L);
+    assertThat(changedViewer.selectedArtwork().id()).isEqualTo(10L);
+    assertThat(changedViewer.selectedArtwork().title()).isEqualTo("Zulu Sky");
+    assertThat(changedViewer.selectedArtworkDescription()).isEqualTo("A dramatic evening sky.");
+    verify(categoryRepository, org.mockito.Mockito.times(2)).findWithArtEntitiesById(5L);
   }
 
   @Test

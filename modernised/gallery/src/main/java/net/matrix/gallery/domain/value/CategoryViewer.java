@@ -12,6 +12,7 @@ public record CategoryViewer(
     ArtworkSummary previousArtwork,
     ArtworkSummary nextArtwork,
     String selectedArtworkArtist,
+    String selectedArtworkDescription,
     String featuredImageUrl,
     String featuredImageLinkUrl) {
 
