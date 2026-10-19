@@ -9,11 +9,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
@@ -60,8 +56,8 @@ public final class ArtworkRenditionGenerator {
       sources =
           entries
               .filter(Files::isRegularFile)
-              .filter(entry -> !isRenditionFileName(entry.getFileName().toString()))
-              .sorted(Comparator.comparing(entry -> entry.getFileName().toString()))
+              .filter(entry -> !isRenditionFileName(requireFileName(entry).toString()))
+              .sorted(Comparator.comparing(entry -> requireFileName(entry).toString()))
               .toList();
     }
 
@@ -75,7 +71,7 @@ public final class ArtworkRenditionGenerator {
   /** Generates both renditions beside {@code sourcePath}, replacing existing renditions safely. */
   public static List<GeneratedRendition> generate(Path sourcePath) throws IOException {
     Path source = validateSourcePath(sourcePath);
-    ImageFormat imageFormat = ImageFormat.fromFileName(source.getFileName().toString());
+    ImageFormat imageFormat = ImageFormat.fromFileName(requireFileName(source).toString());
     BufferedImage sourceImage = readAndValidateImage(source, imageFormat);
 
     return List.of(
@@ -93,7 +89,7 @@ public final class ArtworkRenditionGenerator {
       throw new IllegalArgumentException("Source image is not a readable file: " + source);
     }
 
-    String fileName = source.getFileName().toString();
+    String fileName = requireFileName(source).toString();
     if (isRenditionFileName(fileName)) {
       throw new IllegalArgumentException("A rendition cannot be used as the source: " + fileName);
     }
@@ -189,7 +185,7 @@ public final class ArtworkRenditionGenerator {
   private static void writeSafely(BufferedImage image, ImageFormat imageFormat, Path target)
       throws IOException {
     Path temporaryFile =
-        Files.createTempFile(target.getParent(), "." + target.getFileName() + "-", ".tmp");
+        Files.createTempFile(requireParent(target), "." + requireFileName(target) + "-", ".tmp");
     try {
       if (!ImageIO.write(image, imageFormat.writerName(), temporaryFile.toFile())) {
         throw new IOException("No ImageIO writer is available for " + imageFormat.writerName());
@@ -243,5 +239,13 @@ public final class ArtworkRenditionGenerator {
     private String writerName() {
       return writerName;
     }
+  }
+
+  private static Path requireFileName(Path path) {
+    return Objects.requireNonNull(path.getFileName(), "Path must have a file name: " + path);
+  }
+
+  private static Path requireParent(Path path) {
+    return Objects.requireNonNull(path.getParent(), "Path must have a parent: " + path);
   }
 }
