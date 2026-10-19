@@ -10,6 +10,7 @@ import net.matrix.gallery.domain.value.CategoryDetail;
 import net.matrix.gallery.domain.value.CategorySummary;
 import net.matrix.gallery.domain.value.CategoryViewer;
 import net.matrix.gallery.domain.value.ImageRendition;
+import net.matrix.gallery.domain.value.LightboxArtwork;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
@@ -107,6 +108,7 @@ public class CategoryService {
         detail.categoryName(),
         detail.categoryDescription(),
         detail.artworks(),
+        artworks.stream().map(this::toLightboxArtwork).toList(),
         selectedArtwork,
         previousArtwork,
         nextArtwork,
@@ -126,6 +128,18 @@ public class CategoryService {
                 RenditionType.ORIGINAL,
                 RenditionType.GALLERY,
                 RenditionType.THUMBNAIL));
+  }
+
+  private LightboxArtwork toLightboxArtwork(ArtEntity artwork) {
+    return new LightboxArtwork(
+        artwork.getId(),
+        artwork.getTitle(),
+        artwork.getArtist(),
+        imageUrl(
+            artwork,
+            RenditionType.ORIGINAL,
+            RenditionType.GALLERY,
+            RenditionType.THUMBNAIL));
   }
 
   private String imageUrl(ArtEntity artwork, RenditionType... priorities) {
