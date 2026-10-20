@@ -49,7 +49,7 @@
                 <span>Galleries</span>
                 <ul>
                   <li th:each="category : ${artwork.categories}">
-                    <a th:href="@{/categories/{id}(id=${category.id})}"
+                    <a th:href="@{/categories/{categoryId}/artworks/{artworkId}(categoryId=${category.id},artworkId=${artwork.id})}"
                        th:text="${category.categoryName}">Category</a>
                   </li>
                 </ul>

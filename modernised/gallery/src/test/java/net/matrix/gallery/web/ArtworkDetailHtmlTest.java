@@ -5,8 +5,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import net.matrix.gallery.domain.value.ArtworkDetail;
+import net.matrix.gallery.domain.value.CategoryReference;
 import net.matrix.gallery.domain.value.RenditionDetail;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.service.ArtworkService;
@@ -64,7 +67,33 @@ class ArtworkDetailHtmlTest {
         .contains("class=\"artwork-detail-lightbox__image\" src=\"/images/work.jpg\"")
         .doesNotContain("data-artwork-lightbox-previous", "data-artwork-lightbox-next")
         .contains("Evening Sky", "Legacy Artist", "A warm-toned landscape at dusk.")
-        .contains("Landscape", "1200 × 800", "href=\"/categories/5\"");
+        .contains("Landscape", "1200 × 800", "href=\"/categories/5/artworks/9\"");
+  }
+
+  @Test
+  void categoryLinksRetainArtworkContextForEveryAssociation() throws Exception {
+    when(artworkService.getArtwork(11L))
+        .thenReturn(
+            artworkDetail(
+                11L,
+                List.of(
+                    new CategoryReference(5L, "Urban"),
+                    new CategoryReference(8L, "Contemporary"))));
+    when(artworkService.getArtwork(12L)).thenReturn(artworkDetail(12L, List.of()));
+
+    String associatedHtml =
+        mockMvc.perform(get("/artworks/11")).andReturn().getResponse().getContentAsString();
+    String unassociatedHtml =
+        mockMvc.perform(get("/artworks/12")).andReturn().getResponse().getContentAsString();
+
+    assertThat(associatedHtml)
+        .contains("href=\"/categories/5/artworks/11\"", ">Urban</a>")
+        .contains("href=\"/categories/8/artworks/11\"", ">Contemporary</a>")
+        .contains("href=\"/categories\">Galleries:</a>")
+        .doesNotContain("href=\"/categories/5\"", "href=\"/categories/8\"");
+    assertThat(unassociatedHtml)
+        .contains("href=\"/categories\">Galleries:</a>", ">Artwork</span>")
+        .doesNotContain("class=\"gallery-category-links\"");
   }
 
   @Test
@@ -102,5 +131,26 @@ class ArtworkDetailHtmlTest {
         width,
         height,
         "checksum");
+  }
+
+  private ArtworkDetail artworkDetail(long id, List<CategoryReference> categories) {
+    return new ArtworkDetail(
+        id,
+        "Shattered Reflection",
+        null,
+        "Legacy Artist",
+        "Urban",
+        null,
+        LocalDate.of(2026, 1, 15),
+        1200,
+        800,
+        "Oil on canvas",
+        "An urban reflection.",
+        null,
+        true,
+        false,
+        "/images/work.jpg",
+        categories,
+        List.of(rendition(RenditionType.ORIGINAL, "/images/work.jpg", 1200, 800)));
   }
 }
