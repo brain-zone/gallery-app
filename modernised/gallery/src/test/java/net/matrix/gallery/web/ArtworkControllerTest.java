@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import net.matrix.gallery.domain.value.ArtworkDetail;
 import net.matrix.gallery.domain.value.CategoryReference;
 import net.matrix.gallery.domain.value.RenditionDetail;
@@ -136,7 +137,7 @@ class ArtworkControllerTest {
   private static RenditionDetail rendition(RenditionType type, String url) {
     return new RenditionDetail(
         type,
-        type.name().toLowerCase() + "/evening-sky.jpg",
+        type.name().toLowerCase(Locale.ROOT) + "/evening-sky.jpg",
         url,
         "image/jpeg",
         245760L,

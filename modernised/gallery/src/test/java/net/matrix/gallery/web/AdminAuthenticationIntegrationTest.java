@@ -84,5 +84,12 @@ class AdminAuthenticationIntegrationTest {
         .andExpect(content().contentTypeCompatibleWith("text/javascript"))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("dialog.showModal()")))
         .andExpect(unauthenticated());
+
+    mockMvc
+        .perform(get("/js/artwork-detail-lightbox.js").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/javascript"))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("trigger.focus()")))
+        .andExpect(unauthenticated());
   }
 }
