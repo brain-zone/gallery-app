@@ -10,6 +10,7 @@ import net.matrix.gallery.domain.value.CategoryDetail;
 import net.matrix.gallery.domain.value.CategorySummary;
 import net.matrix.gallery.domain.value.CategoryViewer;
 import net.matrix.gallery.domain.value.ImageRendition;
+import net.matrix.gallery.domain.value.LightboxArtwork;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
@@ -31,78 +32,122 @@ public class CategoryService {
   }
 
   public CategoryDetail getCategory(long id) {
-    Category category =
-        categoryRepository
-            .findWithArtEntitiesById(id)
-            .orElseThrow(
-                () -> new GalleryResourceNotFoundException("Category " + id + " was not found"));
-
-    List<ArtworkSummary> artworks =
-        category.getArtEntities().stream()
-            .sorted(
-                Comparator.comparing(
-                        ArtEntity::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
-                    .thenComparing(ArtEntity::getId))
-            .map(
-                artwork ->
-                    new ArtworkSummary(
-                        artwork.getId(),
-                        artwork.getTitle(),
-                        artwork.getSubTitle(),
-                        imageUrl(artwork)))
-            .toList();
-
-    return new CategoryDetail(
-        category.getId(), category.getCategoryName(), category.getCategoryDescription(), artworks);
+    Category category = findCategory(id);
+    return toDetail(category, orderedArtworks(category));
   }
 
   public CategoryViewer getCategoryViewer(long categoryId) {
-    CategoryDetail category = getCategory(categoryId);
-    ArtworkSummary selectedArtwork =
-        category.artworks().isEmpty() ? null : category.artworks().getFirst();
-    return toViewer(category, selectedArtwork);
+    Category category = findCategory(categoryId);
+    List<ArtEntity> artworks = orderedArtworks(category);
+    return toViewer(category, artworks, artworks.isEmpty() ? -1 : 0);
   }
 
   public CategoryViewer getCategoryViewer(long categoryId, long artworkId) {
-    CategoryDetail category = getCategory(categoryId);
-    ArtworkSummary selectedArtwork =
-        category.artworks().stream()
-            .filter(artwork -> artwork.id() == artworkId)
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new GalleryResourceNotFoundException(
-                        "Artwork " + artworkId + " was not found in category " + categoryId));
-    return toViewer(category, selectedArtwork);
+    Category category = findCategory(categoryId);
+    List<ArtEntity> artworks = orderedArtworks(category);
+    int selectedIndex = -1;
+    for (int index = 0; index < artworks.size(); index++) {
+      if (artworks.get(index).getId() == artworkId) {
+        selectedIndex = index;
+        break;
+      }
+    }
+    if (selectedIndex < 0) {
+      throw new GalleryResourceNotFoundException(
+          "Artwork " + artworkId + " was not found in category " + categoryId);
+    }
+    return toViewer(category, artworks, selectedIndex);
   }
 
-  private CategoryViewer toViewer(CategoryDetail category, ArtworkSummary selectedArtwork) {
-    int selectedIndex = category.artworks().indexOf(selectedArtwork);
+  private Category findCategory(long id) {
+    return categoryRepository
+        .findWithArtEntitiesById(id)
+        .orElseThrow(
+            () -> new GalleryResourceNotFoundException("Category " + id + " was not found"));
+  }
+
+  private List<ArtEntity> orderedArtworks(Category category) {
+    return category.getArtEntities().stream()
+        .sorted(
+            Comparator.comparing(
+                    ArtEntity::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                .thenComparing(ArtEntity::getId))
+        .toList();
+  }
+
+  private CategoryDetail toDetail(Category category, List<ArtEntity> artworks) {
+    return new CategoryDetail(
+        category.getId(),
+        category.getCategoryName(),
+        category.getCategoryDescription(),
+        artworks.stream().map(this::toSummary).toList());
+  }
+
+  private ArtworkSummary toSummary(ArtEntity artwork) {
+    return new ArtworkSummary(
+        artwork.getId(),
+        artwork.getTitle(),
+        artwork.getSubTitle(),
+        imageUrl(artwork, RenditionType.THUMBNAIL, RenditionType.GALLERY, RenditionType.ORIGINAL));
+  }
+
+  private CategoryViewer toViewer(Category category, List<ArtEntity> artworks, int selectedIndex) {
+    CategoryDetail detail = toDetail(category, artworks);
+    ArtworkSummary selectedArtwork =
+        selectedIndex >= 0 ? detail.artworks().get(selectedIndex) : null;
     ArtworkSummary previousArtwork =
-        selectedIndex > 0 ? category.artworks().get(selectedIndex - 1) : null;
+        selectedIndex > 0 ? detail.artworks().get(selectedIndex - 1) : null;
     ArtworkSummary nextArtwork =
-        selectedIndex >= 0 && selectedIndex < category.artworks().size() - 1
-            ? category.artworks().get(selectedIndex + 1)
+        selectedIndex >= 0 && selectedIndex < detail.artworks().size() - 1
+            ? detail.artworks().get(selectedIndex + 1)
             : null;
+    ArtEntity selectedEntity = selectedIndex >= 0 ? artworks.get(selectedIndex) : null;
 
     return new CategoryViewer(
-        category.id(),
-        category.categoryName(),
-        category.categoryDescription(),
-        category.artworks(),
+        detail.id(),
+        detail.categoryName(),
+        detail.categoryDescription(),
+        detail.artworks(),
+        artworks.stream().map(this::toLightboxArtwork).toList(),
         selectedArtwork,
         previousArtwork,
-        nextArtwork);
+        nextArtwork,
+        selectedEntity == null ? null : selectedEntity.getArtist(),
+        selectedEntity == null ? null : selectedEntity.getDescription(),
+        selectedEntity == null
+            ? null
+            : imageUrl(
+                selectedEntity,
+                RenditionType.GALLERY,
+                RenditionType.ORIGINAL,
+                RenditionType.THUMBNAIL),
+        selectedEntity == null
+            ? null
+            : imageUrl(
+                selectedEntity,
+                RenditionType.ORIGINAL,
+                RenditionType.GALLERY,
+                RenditionType.THUMBNAIL));
   }
 
-  private String imageUrl(ArtEntity artwork) {
-    ImageRendition rendition = artwork.getImageRendition().get(RenditionType.THUMBNAIL);
-    if (rendition == null) {
-      rendition = artwork.getImageRendition().get(RenditionType.GALLERY);
+  private LightboxArtwork toLightboxArtwork(ArtEntity artwork) {
+    return new LightboxArtwork(
+        artwork.getId(),
+        artwork.getTitle(),
+        artwork.getArtist(),
+        imageUrl(artwork, RenditionType.ORIGINAL, RenditionType.GALLERY, RenditionType.THUMBNAIL));
+  }
+
+  private String imageUrl(ArtEntity artwork, RenditionType... priorities) {
+    for (RenditionType priority : priorities) {
+      ImageRendition rendition = artwork.getImageRendition().get(priority);
+      if (rendition != null) {
+        String url = ArtworkImageUrl.fromObjectKey(rendition.objectKey());
+        if (url != null) {
+          return url;
+        }
+      }
     }
-    if (rendition == null) {
-      rendition = artwork.getImageRendition().get(RenditionType.ORIGINAL);
-    }
-    return rendition == null ? null : ArtworkImageUrl.fromObjectKey(rendition.objectKey());
+    return null;
   }
 }

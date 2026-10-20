@@ -8,11 +8,44 @@ public record CategoryViewer(
     String categoryName,
     String categoryDescription,
     List<ArtworkSummary> artworks,
+    List<LightboxArtwork> lightboxArtworks,
     ArtworkSummary selectedArtwork,
     ArtworkSummary previousArtwork,
-    ArtworkSummary nextArtwork) {
+    ArtworkSummary nextArtwork,
+    String selectedArtworkArtist,
+    String selectedArtworkDescription,
+    String featuredImageUrl,
+    String featuredImageLinkUrl) {
 
   public CategoryViewer {
     artworks = List.copyOf(artworks);
+    lightboxArtworks = List.copyOf(lightboxArtworks);
+  }
+
+  public CategoryViewer(
+      Long id,
+      String categoryName,
+      String categoryDescription,
+      List<ArtworkSummary> artworks,
+      ArtworkSummary selectedArtwork,
+      ArtworkSummary previousArtwork,
+      ArtworkSummary nextArtwork,
+      String selectedArtworkArtist,
+      String selectedArtworkDescription,
+      String featuredImageUrl,
+      String featuredImageLinkUrl) {
+    this(
+        id,
+        categoryName,
+        categoryDescription,
+        artworks,
+        List.of(),
+        selectedArtwork,
+        previousArtwork,
+        nextArtwork,
+        selectedArtworkArtist,
+        selectedArtworkDescription,
+        featuredImageUrl,
+        featuredImageLinkUrl);
   }
 }

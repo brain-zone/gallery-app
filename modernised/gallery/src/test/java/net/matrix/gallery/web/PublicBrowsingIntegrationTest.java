@@ -27,8 +27,12 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class PublicBrowsingIntegrationTest {
 
-  private static final String LANDSCAPE_IMAGE_PATH =
+  private static final String LANDSCAPE_ORIGINAL_IMAGE_PATH =
       "/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+  private static final String LANDSCAPE_GALLERY_IMAGE_PATH =
+      "/artworks/images/g-3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+  private static final String LANDSCAPE_THUMBNAIL_IMAGE_PATH =
+      "/artworks/images/t-3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryRepository categoryRepository;
@@ -92,8 +96,40 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
+                        "A serene photograph capturing the first light of dawn over a snow-covered mountain range.")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString(
+                            "Select an artwork to view its details."))))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
                         "/categories/" + categoryId + "/artworks/" + artworkId)))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_IMAGE_PATH)));
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("Artwork by Maya Vasquez")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString("href=\"/artworks/" + artworkId + "\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("View artwork details")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "href=\"" + LANDSCAPE_ORIGINAL_IMAGE_PATH + "\"")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "src=\"" + LANDSCAPE_GALLERY_IMAGE_PATH + "\"")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "src=\"" + LANDSCAPE_THUMBNAIL_IMAGE_PATH + "\"")));
 
     mockMvc
         .perform(get("/artworks/{id}", artworkId).with(anonymous()))
@@ -108,7 +144,8 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(">Media</dt>"))))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_IMAGE_PATH)));
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString(LANDSCAPE_GALLERY_IMAGE_PATH)));
   }
 
   @Test
@@ -138,14 +175,17 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
-                        "<h2 class=\"gallery-image-title\">Cosmic Dance</h2>")))
+                        "<h2 class=\"gallery-image-title\">Chromatic Vortex</h2>")))
         .andExpect(
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
-                        "/categories/" + abstractCategoryId + "/artworks/" + gardenOfLightId)))
+                        "/categories/" + abstractCategoryId + "/artworks/" + cosmicDanceId)))
         .andExpect(
-            content().string(org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:")))
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "aria-label=\"Next artwork: Cosmic Dance\"")))
         .andExpect(
             content()
                 .string(
@@ -170,6 +210,11 @@ class PublicBrowsingIntegrationTest {
             content()
                 .string(
                     org.hamcrest.Matchers.containsString(
+                        "A watercolor painting depicting an ethereal garden bathed in golden light, with flowers and trees shimmering as if glowing from within.")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
                         "/categories/" + abstractCategoryId + "/artworks/" + cosmicDanceId)))
         .andExpect(
             content()
@@ -183,9 +228,14 @@ class PublicBrowsingIntegrationTest {
                         "/categories/" + abstractCategoryId + "/artworks/" + abstractDreamId)))
         .andExpect(
             content()
-                .string(org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:")))
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "aria-label=\"Previous artwork: Cosmic Dance\"")))
         .andExpect(
-            content().string(org.hamcrest.Matchers.containsString("aria-label=\"Next artwork:")));
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "aria-label=\"Next artwork: The Abstract Dream\"")));
 
     mockMvc
         .perform(
@@ -197,7 +247,9 @@ class PublicBrowsingIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(
             content()
-                .string(org.hamcrest.Matchers.containsString("aria-label=\"Previous artwork:")))
+                .string(
+                    org.hamcrest.Matchers.containsString(
+                        "aria-label=\"Previous artwork: In the Garden of Light\"")))
         .andExpect(
             content()
                 .string(
@@ -232,15 +284,15 @@ class PublicBrowsingIntegrationTest {
         .andExpect(jsonPath("$.artist").value("Maya Vasquez"))
         .andExpect(jsonPath("$.genre").value("Nature"))
         .andExpect(jsonPath("$.media").doesNotExist())
-        .andExpect(jsonPath("$.primaryImageUrl").value(LANDSCAPE_IMAGE_PATH))
-        .andExpect(jsonPath("$.renditions[0].url").value(LANDSCAPE_IMAGE_PATH))
+        .andExpect(jsonPath("$.primaryImageUrl").value(LANDSCAPE_GALLERY_IMAGE_PATH))
+        .andExpect(jsonPath("$.renditions[0].url").value(LANDSCAPE_ORIGINAL_IMAGE_PATH))
         .andExpect(jsonPath("$.categories[0].categoryName").value("Landscape"));
   }
 
   @Test
   void anonymousVisitorCanLoadCuratedImageBytes() throws Exception {
     mockMvc
-        .perform(get(LANDSCAPE_IMAGE_PATH).with(anonymous()))
+        .perform(get(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG));
     mockMvc

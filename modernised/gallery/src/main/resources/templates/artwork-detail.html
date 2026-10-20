@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <script defer th:src="@{/js/artwork-detail-lightbox.js}"></script>
     <title th:text="|${artwork.title} · Barbara Israel Fine Arts|">Artwork</title>
   </head>
   <body>
@@ -48,7 +49,7 @@
                 <span>Galleries</span>
                 <ul>
                   <li th:each="category : ${artwork.categories}">
-                    <a th:href="@{/categories/{id}(id=${category.id})}"
+                    <a th:href="@{/categories/{categoryId}/artworks/{artworkId}(categoryId=${category.id},artworkId=${artwork.id})}"
                        th:text="${category.categoryName}">Category</a>
                   </li>
                 </ul>
@@ -56,28 +57,62 @@
             </section>
 
             <section class="gallery-image-area">
-              <a class="gallery-image-link"
-                 th:if="${artwork.primaryImageUrl}"
-                 th:href="${artwork.primaryImageUrl}">
-                <img class="gallery-primary-image"
-                     th:src="${artwork.primaryImageUrl}"
-                     th:alt="${artwork.title}">
-              </a>
-              <p class="empty-gallery" th:unless="${artwork.primaryImageUrl}">Image unavailable.</p>
+              <th:block th:each="rendition : ${artwork.renditions}"
+                        th:if="${rendition.url == displayImageUrl}">
+                <a class="gallery-image-link"
+                   th:href="${displayImageUrl}"
+                   data-artwork-detail-lightbox-trigger
+                   th:aria-label="|Open original image of ${artwork.title}|"
+                   th:attr="data-artwork-title=${artwork.title}">
+                  <img class="gallery-primary-image"
+                       th:src="${rendition.url}"
+                       th:alt="|${artwork.title} ${rendition.type} image|"
+                       data-artwork-detail-canvas-image>
+                </a>
+              </th:block>
+              <p class="empty-gallery" th:unless="${displayImageUrl}">Image unavailable.</p>
               <h2 class="gallery-image-title" th:text="${artwork.title}">Artwork title</h2>
             </section>
           </div>
 
-          <div class="gallery-thumbnails" th:unless="${#lists.isEmpty(artwork.renditions)}">
+          <div class="gallery-thumbnails artwork-renditions"
+               th:unless="${#lists.isEmpty(artwork.renditions)}">
             <div class="thumbnail-strip">
-              <a class="gallery-thumbnail"
+              <a class="artwork-rendition"
                  th:each="rendition : ${artwork.renditions}"
                  th:href="${rendition.url}"
-                 th:title="|${artwork.title} · ${rendition.type}|">
-                <img th:src="${rendition.url}" th:alt="|${artwork.title} ${rendition.type} image|">
+                 th:title="|${artwork.title} · ${rendition.type}|"
+                 data-artwork-detail-rendition-selector
+                 th:aria-current="${rendition.url == displayImageUrl} ? 'true' : null"
+                 th:attr="data-rendition-label=${rendition.type},
+                          data-rendition-width=${rendition.width},
+                          data-rendition-height=${rendition.height}">
+                <img class="artwork-rendition__image"
+                     th:src="${rendition.url}"
+                     th:alt="|${artwork.title} ${rendition.type} image|">
+                <span class="artwork-rendition__label" th:text="${rendition.type}">ORIGINAL</span>
+                <span class="artwork-rendition__dimensions"
+                      th:if="${rendition.width != null && rendition.height != null}"
+                      th:text="|${rendition.width} × ${rendition.height}|">1024 × 1024</span>
               </a>
             </div>
           </div>
+
+          <dialog class="artwork-detail-lightbox"
+                  th:unless="${#lists.isEmpty(artwork.renditions)}"
+                  aria-labelledby="artwork-detail-lightbox-title">
+            <div class="artwork-detail-lightbox__content">
+              <form class="artwork-detail-lightbox__close-form" method="dialog">
+                <button class="artwork-lightbox__close" type="submit" autofocus>Close</button>
+              </form>
+              <img class="artwork-detail-lightbox__image"
+                   th:src="${displayImageUrl}"
+                   th:alt="|Original image of ${artwork.title}|">
+              <div class="artwork-detail-lightbox__details">
+                <h2 id="artwork-detail-lightbox-title" th:text="${artwork.title}">Artwork title</h2>
+              </div>
+            </div>
+          </dialog>
         </main>
       </div>
     </div>

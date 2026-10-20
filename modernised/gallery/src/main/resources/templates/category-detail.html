@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="|${category.categoryName} · Barbara Israel Fine Arts|">Gallery category</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <link rel="stylesheet" th:href="@{/css/gallery.css(v='lightbox-controls')}">
+    <script defer th:src="@{/js/artwork-lightbox.js}"></script>
   </head>
   <body>
     <div class="page-shell">
@@ -25,12 +26,21 @@
 
           <div class="gallery-stage">
             <section class="gallery-text-area">
-              <h1 th:text="${category.categoryName}">Category</h1>
-              <p th:if="${category.categoryDescription}" th:text="${category.categoryDescription}">
-                Category description
-              </p>
-              <p th:unless="${#lists.isEmpty(category.artworks)}">Select an artwork to view its details.</p>
-              <p th:if="${#lists.isEmpty(category.artworks)}">No artwork is available.</p>
+              <th:block th:if="${category.selectedArtwork}">
+                <h1 th:text="${category.selectedArtwork.title}">Artwork</h1>
+                <p th:if="${category.selectedArtworkDescription}"
+                   th:text="${category.selectedArtworkDescription}">
+                  Artwork description
+                </p>
+              </th:block>
+              <th:block th:if="${#lists.isEmpty(category.artworks)}">
+                <h1 th:text="${category.categoryName}">Category</h1>
+                <p th:if="${category.categoryDescription}"
+                   th:text="${category.categoryDescription}">
+                  Category description
+                </p>
+                <p>No artwork is available.</p>
+              </th:block>
             </section>
 
             <section class="gallery-image-area">
@@ -39,15 +49,54 @@
               </p>
               <th:block th:if="${category.selectedArtwork}"
                         th:with="featured=${category.selectedArtwork}">
-                <a class="gallery-image-link" th:href="${featured.imageUrl}">
-                  <img th:if="${featured.imageUrl}"
-                       th:src="${featured.imageUrl}"
+                <a class="gallery-image-link"
+                   th:if="${category.featuredImageUrl}"
+                   th:href="${category.featuredImageLinkUrl}"
+                   data-artwork-lightbox-trigger>
+                  <img th:src="${category.featuredImageUrl}"
                        th:alt="${featured.title}">
-                  <span th:unless="${featured.imageUrl}"
-                        th:text="${featured.title}">
+                </a>
+                <dialog class="artwork-lightbox"
+                        th:if="${category.featuredImageUrl}"
+                        th:data-selected-artwork-id="${featured.id}"
+                        aria-labelledby="artwork-lightbox-title">
+                  <div class="artwork-lightbox__content">
+                    <form class="artwork-lightbox__close-form" method="dialog">
+                      <button class="artwork-lightbox__close" type="submit" autofocus>
+                        Close
+                      </button>
+                    </form>
+                    <img class="artwork-lightbox__image"
+                         th:src="${category.featuredImageLinkUrl}"
+                         th:alt="${featured.title}">
+                    <div class="artwork-lightbox__details">
+                      <h2 id="artwork-lightbox-title" th:text="${featured.title}">Artwork</h2>
+                      <p data-artwork-lightbox-artist
+                         th:hidden="${category.selectedArtworkArtist == null}"
+                         th:text="|Artwork by ${category.selectedArtworkArtist}|">
+                        Artwork by Artist
+                      </p>
+                    </div>
+                    <nav class="artwork-lightbox__navigation"
+                         aria-label="Lightbox artwork navigation">
+                      <button type="button" data-artwork-lightbox-previous>Previous</button>
+                      <button type="button" data-artwork-lightbox-next>Next</button>
+                    </nav>
+                  </div>
+                </dialog>
+                <div hidden aria-hidden="true" data-lightbox-artworks>
+                  <div th:each="artwork : ${category.lightboxArtworks}"
+                       data-lightbox-artwork
+                       th:data-artwork-id="${artwork.id}"
+                       th:data-title="${artwork.title}"
+                       data-artist=""
+                       data-image-url=""
+                       th:attrappend="data-artist=${artwork.artist},data-image-url=${artwork.imageUrl}"></div>
+                </div>
+                <span th:unless="${category.featuredImageUrl}"
+                      th:text="${featured.title}">
     Artwork
   </span>
-                </a>
                 <div class="gallery-artwork-navigation">
                   <a class="gallery-artwork-navigation__previous"
                      th:if="${category.previousArtwork}"
@@ -69,6 +118,13 @@
                         th:unless="${category.nextArtwork}"
                         aria-hidden="true"></span>
                 </div>
+                <p th:if="${category.selectedArtworkArtist}"
+                   th:text="|Artwork by ${category.selectedArtworkArtist}|">
+                  Artwork by Artist
+                </p>
+                <p>
+                  <a th:href="@{/artworks/{id}(id=${featured.id})}">View artwork details</a>
+                </p>
               </th:block>
             </section>
           </div>
