@@ -259,6 +259,110 @@
           "currency": "USD"
         }
       ]
+    },
+    {
+      "title": "Gallery Interface Study",
+      "category": "Wireframes",
+      "artist": "Aria Liora",
+      "description": "A layered interface study mapping an imagined gallery experience through precise grids, annotations, and fluid visitor pathways.",
+      "fileName": "images/cf13e040-419b-4bb9-820f-6515eef08ee2.png",
+      "logicalFileName": "gallery_interface_study_wireframe.png",
+      "genre": "Design Study",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 250.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 750.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 45.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Connected Metropolis",
+      "category": "Urban",
+      "artist": "Emilio Dantes",
+      "description": "A luminous cityscape tracing the invisible networks that bind towers, streets, and communities into a single restless organism.",
+      "fileName": "images/CDBC05BD-36AF-48CE-8624-E637DE55BA3D.jpg",
+      "logicalFileName": "connected_metropolis_cityscape.jpg",
+      "genre": "Urban Futurism",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 650.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 1950.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 110.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Fractured City",
+      "category": "Urban",
+      "artist": "Theo Blackwood",
+      "description": "An angular portrait of a city split into overlapping planes, where concrete facades and neon shadows collide in uneasy balance.",
+      "fileName": "images/6BB5367F-9CA8-4D8D-BE29-1220225E94FE.jpeg",
+      "logicalFileName": "fractured_city_composition.jpeg",
+      "genre": "Urban Expressionism",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 700.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 2100.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 125.00,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "title": "Chromatic Vortex",
+      "category": "Abstract",
+      "artist": "Liana Corvus",
+      "description": "A spiraling field of saturated color that draws the eye inward through rhythmic bands of light, motion, and contrast.",
+      "fileName": "images/47791BC2-92F2-4DB1-9C0A-B686818C047B.jpeg",
+      "logicalFileName": "chromatic_vortex_painting.jpeg",
+      "genre": "Abstract Expressionism",
+      "prices": [
+        {
+          "type": "COST",
+          "amount": 1800.00,
+          "currency": "USD"
+        },
+        {
+          "type": "SELL",
+          "amount": 5400.00,
+          "currency": "USD"
+        },
+        {
+          "type": "RENTAL",
+          "amount": 300.00,
+          "currency": "USD"
+        }
+      ]
     }
   ]
 }

@@ -13,7 +13,10 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -55,7 +58,7 @@ class ArtworkCatalogImporterTest {
   }
 
   @Test
-  void storesArtworkResourceKeyUsingForwardSlashes() throws IOException {
+  void storesAllArtworkResourceKeysUsingForwardSlashes() throws IOException {
     ImportHarness harness = new ImportHarness();
     FileSystemResource catalog = catalog(singleArtwork("Abstract", "abstract-one.jpg", "One"));
 
@@ -64,9 +67,14 @@ class ArtworkCatalogImporterTest {
     ArtEntity artwork = harness.artworks.get("abstract-one.jpg");
 
     assertThat(artwork).isNotNull();
-    assertThat(artwork.getGalleryPicture()).isNotNull();
-    assertThat(artwork.getGalleryPicture().objectKey())
+    assertThat(artwork.getStoragePicture().objectKey())
         .isEqualTo("artworks/images/test.png")
+        .doesNotContain("\\");
+    assertThat(artwork.getGalleryPicture().objectKey())
+        .isEqualTo("artworks/images/g-test.png")
+        .doesNotContain("\\");
+    assertThat(artwork.getThumbnailPicture().objectKey())
+        .isEqualTo("artworks/images/t-test.png")
         .doesNotContain("\\");
   }
 
@@ -77,16 +85,18 @@ class ArtworkCatalogImporterTest {
     var result =
         harness.importer.importCatalog(new ClassPathResource("static/artworks/artworks.json"));
 
-    assertThat(result.catalogSize()).isEqualTo(10);
-    assertThat(result.categoriesCreated()).isEqualTo(5);
-    assertThat(result.artworksCreated()).isEqualTo(10);
+    assertThat(result.catalogSize()).isEqualTo(14);
+    assertThat(result.categoriesCreated()).isEqualTo(6);
+    assertThat(result.artworksCreated()).isEqualTo(14);
     assertThat(harness.categories.keySet())
-        .containsExactlyInAnyOrder("abstract", "landscape", "portrait", "sculpture", "urban");
-    assertThat(harness.artworks).hasSize(10);
+        .containsExactlyInAnyOrder(
+            "abstract", "landscape", "portrait", "sculpture", "urban", "wireframes");
+    assertThat(harness.artworks).hasSize(14);
   }
 
   @Test
-  void importsOneArtworkWithMetadataAssociationAndDerivedRendition() throws IOException {
+  void importsOneArtworkWithMetadataAssociationAndThreeIndependentRenditions()
+      throws IOException, NoSuchAlgorithmException {
     ImportHarness harness = new ImportHarness();
     FileSystemResource catalog = catalog(singleArtwork("Abstract", "abstract-one.jpg", "One"));
 
@@ -103,12 +113,18 @@ class ArtworkCatalogImporterTest {
     assertThat(artwork.getCategories())
         .extracting(Category::getCategoryName)
         .containsExactly("Abstract");
-    assertThat(artwork.getGalleryPicture().objectKey()).isEqualTo("artworks/images/test.png");
-    assertThat(artwork.getGalleryPicture().contentType()).isEqualTo("image/png");
-    assertThat(artwork.getGalleryPicture().width()).isEqualTo(3);
-    assertThat(artwork.getGalleryPicture().height()).isEqualTo(2);
-    assertThat(artwork.getGalleryPicture().sizeBytes()).isPositive();
-    assertThat(artwork.getGalleryPicture().checksum()).hasSize(64);
+    assertThat(artwork.getImageRendition())
+        .containsOnlyKeys(RenditionType.ORIGINAL, RenditionType.GALLERY, RenditionType.THUMBNAIL);
+    assertRendition(artwork.getStoragePicture(), "test.png", 7, 5);
+    assertRendition(artwork.getGalleryPicture(), "g-test.png", 5, 3);
+    assertRendition(artwork.getThumbnailPicture(), "t-test.png", 2, 1);
+    assertThat(artwork.getWidth()).isEqualTo(7);
+    assertThat(artwork.getHeight()).isEqualTo(5);
+    assertThat(
+            artwork.getImageRendition().values().stream()
+                .map(rendition -> rendition.checksum())
+                .distinct())
+        .hasSize(3);
   }
 
   @Test
@@ -154,7 +170,8 @@ class ArtworkCatalogImporterTest {
     assertThat(harness.categories).hasSize(1);
     ArtEntity artwork = harness.artworks.get("abstract-one.jpg");
     assertThat(artwork.getCategories()).hasSize(1);
-    assertThat(artwork.getImageRendition()).containsOnlyKeys(RenditionType.GALLERY);
+    assertThat(artwork.getImageRendition())
+        .containsOnlyKeys(RenditionType.ORIGINAL, RenditionType.GALLERY, RenditionType.THUMBNAIL);
   }
 
   @Test
@@ -166,7 +183,21 @@ class ArtworkCatalogImporterTest {
 
     assertThatThrownBy(() -> harness.importer.importCatalog(new FileSystemResource(catalogFile)))
         .isInstanceOf(ArtworkCatalogImportException.class)
-        .hasMessageContaining("refers to missing image images/test.png");
+        .hasMessageContaining("refers to missing required ORIGINAL image images/test.png");
+    assertThat(harness.artworks).isEmpty();
+  }
+
+  @Test
+  void missingDerivativeFailsClearlyBeforeImport() throws IOException {
+    ImportHarness harness = new ImportHarness();
+    Files.createDirectories(temporaryDirectory.resolve("images"));
+    createImage("test.png", 7, 5, 0xAA0000);
+    Path catalogFile = temporaryDirectory.resolve("artworks.json");
+    Files.writeString(catalogFile, singleArtwork("Abstract", "abstract-one.jpg", "One"));
+
+    assertThatThrownBy(() -> harness.importer.importCatalog(new FileSystemResource(catalogFile)))
+        .isInstanceOf(ArtworkCatalogImportException.class)
+        .hasMessageContaining("refers to missing required GALLERY image images/g-test.png");
     assertThat(harness.artworks).isEmpty();
   }
 
@@ -195,8 +226,8 @@ class ArtworkCatalogImporterTest {
   @Test
   void inconsistentCategoryCasingFailsClearly() throws IOException {
     ImportHarness harness = new ImportHarness();
-    createImage("first.png");
-    createImage("second.png");
+    createRenditions("first.png");
+    createRenditions("second.png");
     String first = artworkObject("Abstract", "one.jpg", "One", "images/first.png");
     String second = artworkObject("abstract", "two.jpg", "Two", "images/second.png");
     Path catalogFile = temporaryDirectory.resolve("artworks.json");
@@ -209,16 +240,41 @@ class ArtworkCatalogImporterTest {
 
   private FileSystemResource catalog(String json) throws IOException {
     Files.createDirectories(temporaryDirectory.resolve("images"));
-    createImage("test.png");
+    createRenditions("test.png");
     Path catalogFile = temporaryDirectory.resolve("artworks.json");
     Files.writeString(catalogFile, json);
     return new FileSystemResource(catalogFile);
   }
 
-  private void createImage(String name) throws IOException {
+  private void createRenditions(String name) throws IOException {
+    createImage(name, 7, 5, 0xAA0000);
+    createImage("g-" + name, 5, 3, 0x00AA00);
+    createImage("t-" + name, 2, 1, 0x0000AA);
+  }
+
+  private void createImage(String name, int width, int height, int rgb) throws IOException {
     Files.createDirectories(temporaryDirectory.resolve("images"));
-    BufferedImage image = new BufferedImage(3, 2, BufferedImage.TYPE_INT_RGB);
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    image.setRGB(0, 0, rgb);
     ImageIO.write(image, "png", temporaryDirectory.resolve("images").resolve(name).toFile());
+  }
+
+  private void assertRendition(
+      net.matrix.gallery.domain.value.ImageRendition rendition,
+      String fileName,
+      int width,
+      int height)
+      throws IOException, NoSuchAlgorithmException {
+    Path file = temporaryDirectory.resolve("images").resolve(fileName);
+    assertThat(rendition.objectKey()).isEqualTo("artworks/images/" + fileName);
+    assertThat(rendition.contentType()).isEqualTo("image/png");
+    assertThat(rendition.width()).isEqualTo(width);
+    assertThat(rendition.height()).isEqualTo(height);
+    assertThat(rendition.sizeBytes()).isEqualTo(Files.size(file));
+    assertThat(rendition.checksum())
+        .isEqualTo(
+            HexFormat.of()
+                .formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file))));
   }
 
   private String singleArtwork(String category, String key, String title) {

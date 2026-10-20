@@ -47,6 +47,8 @@ class CategoryServiceTest {
   void mapsCategoryAndArtworksToDetail() {
     Category category = category(5L, "Landscapes", "Landscape works");
     ArtEntity artwork = artwork(9L, "Evening Sky", "Sunset series");
+    addRendition(artwork, RenditionType.ORIGINAL, "original-evening-sky.jpg");
+    addRendition(artwork, RenditionType.THUMBNAIL, "thumbnail-evening-sky.jpg");
     artwork.addCategory(category);
     when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
 
@@ -60,7 +62,7 @@ class CategoryServiceTest {
     assertThat(detail.artworks().getFirst().title()).isEqualTo("Evening Sky");
     assertThat(detail.artworks().getFirst().subTitle()).isEqualTo("Sunset series");
     assertThat(detail.artworks().getFirst().imageUrl())
-        .isEqualTo("/artworks/images/evening-sky.jpg");
+        .isEqualTo("/artworks/images/thumbnail-evening-sky.jpg");
     verify(categoryRepository).findWithArtEntitiesById(5L);
   }
 
@@ -88,16 +90,145 @@ class CategoryServiceTest {
   @Test
   void categoryViewerSelectsRequestedArtworkAndRetainsCategoryContext() {
     Category category = category(5L, "Landscapes", "Landscape works");
-    artwork(9L, "Alpha Field", null).addCategory(category);
-    artwork(10L, "Zulu Sky", null).addCategory(category);
+    ArtEntity alpha = artwork(9L, "Alpha Field", null);
+    alpha.setDescription("A quiet field at dawn.");
+    alpha.addCategory(category);
+    ArtEntity zulu = artwork(10L, "Zulu Sky", null);
+    zulu.setDescription("A dramatic evening sky.");
+    zulu.addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var initialViewer = categoryService.getCategoryViewer(5L);
+    var changedViewer = categoryService.getCategoryViewer(5L, 10L);
+
+    assertThat(initialViewer.selectedArtwork().title()).isEqualTo("Alpha Field");
+    assertThat(initialViewer.selectedArtworkDescription()).isEqualTo("A quiet field at dawn.");
+    assertThat(changedViewer.id()).isEqualTo(5L);
+    assertThat(changedViewer.categoryName()).isEqualTo("Landscapes");
+    assertThat(changedViewer.artworks())
+        .extracting(artwork -> artwork.id())
+        .containsExactly(9L, 10L);
+    assertThat(changedViewer.selectedArtwork().id()).isEqualTo(10L);
+    assertThat(changedViewer.selectedArtwork().title()).isEqualTo("Zulu Sky");
+    assertThat(changedViewer.selectedArtworkDescription()).isEqualTo("A dramatic evening sky.");
+    verify(categoryRepository, org.mockito.Mockito.times(2)).findWithArtEntitiesById(5L);
+  }
+
+  @Test
+  void categoryViewerUsesDistinctRenditionPrioritiesForThumbnailDisplayAndLink() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    ArtEntity artwork = artwork(9L, "Evening Sky", null);
+    artwork.setArtist("Legacy Artist");
+    addRendition(artwork, RenditionType.ORIGINAL, "original.jpg");
+    addRendition(artwork, RenditionType.THUMBNAIL, "thumbnail.jpg");
+    artwork.addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var viewer = categoryService.getCategoryViewer(5L);
+
+    assertThat(viewer.selectedArtwork().imageUrl()).isEqualTo("/artworks/images/thumbnail.jpg");
+    assertThat(viewer.selectedArtworkArtist()).isEqualTo("Legacy Artist");
+    assertThat(viewer.featuredImageUrl()).isEqualTo("/artworks/images/evening-sky.jpg");
+    assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/artworks/images/original.jpg");
+    verify(categoryRepository).findWithArtEntitiesById(5L);
+  }
+
+  @Test
+  void categoryViewerProvidesOrderedLightboxArtworkDataWithoutChangingExistingValues() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    ArtEntity zulu = artworkWithoutRendition(10L, "Zulu Sky", "Evening series");
+    zulu.setArtist("Zed Artist");
+    addRendition(zulu, RenditionType.ORIGINAL, "zulu-original.jpg");
+    addRendition(zulu, RenditionType.GALLERY, "zulu-gallery.jpg");
+    addRendition(zulu, RenditionType.THUMBNAIL, "zulu-thumbnail.jpg");
+    zulu.addCategory(category);
+    ArtEntity alpha = artworkWithoutRendition(9L, "Alpha Field", "Dawn series");
+    alpha.setArtist("Alpha Artist");
+    addRendition(alpha, RenditionType.GALLERY, "alpha-gallery.jpg");
+    addRendition(alpha, RenditionType.THUMBNAIL, "alpha-thumbnail.jpg");
+    alpha.addCategory(category);
+    ArtEntity middle = artworkWithoutRendition(11L, "Middle Meadow", null);
+    middle.setArtist("Middle Artist");
+    addRendition(middle, RenditionType.THUMBNAIL, "middle-thumbnail.jpg");
+    middle.addCategory(category);
+    ArtEntity noImage = artworkWithoutRendition(12L, "No Image", null);
+    noImage.setArtist("Image-free Artist");
+    noImage.addCategory(category);
     when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
 
     var viewer = categoryService.getCategoryViewer(5L, 10L);
 
+    assertThat(viewer.lightboxArtworks())
+        .extracting(artwork -> artwork.id())
+        .containsExactly(9L, 11L, 12L, 10L);
+    assertThat(viewer.lightboxArtworks())
+        .extracting(artwork -> artwork.title())
+        .containsExactly("Alpha Field", "Middle Meadow", "No Image", "Zulu Sky");
+    assertThat(viewer.lightboxArtworks())
+        .extracting(artwork -> artwork.artist())
+        .containsExactly("Alpha Artist", "Middle Artist", "Image-free Artist", "Zed Artist");
+    assertThat(viewer.lightboxArtworks())
+        .extracting(artwork -> artwork.imageUrl())
+        .containsExactly(
+            "/artworks/images/alpha-gallery.jpg",
+            "/artworks/images/middle-thumbnail.jpg",
+            null,
+            "/artworks/images/zulu-original.jpg");
+
     assertThat(viewer.id()).isEqualTo(5L);
     assertThat(viewer.categoryName()).isEqualTo("Landscapes");
-    assertThat(viewer.artworks()).extracting(artwork -> artwork.id()).containsExactly(9L, 10L);
+    assertThat(viewer.categoryDescription()).isEqualTo("Landscape works");
+    assertThat(viewer.artworks())
+        .extracting(artwork -> artwork.id())
+        .containsExactly(9L, 11L, 12L, 10L);
     assertThat(viewer.selectedArtwork().id()).isEqualTo(10L);
+    assertThat(viewer.previousArtwork().id()).isEqualTo(12L);
+    assertThat(viewer.nextArtwork()).isNull();
+    assertThat(viewer.selectedArtworkArtist()).isEqualTo("Zed Artist");
+    assertThat(viewer.selectedArtworkDescription()).isNull();
+    assertThat(viewer.featuredImageUrl()).isEqualTo("/artworks/images/zulu-gallery.jpg");
+    assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/artworks/images/zulu-original.jpg");
+    verify(categoryRepository).findWithArtEntitiesById(5L);
+  }
+
+  @Test
+  void categoryViewerFallsBackAcrossAvailableRenditions() {
+    Category category = category(5L, "Landscapes", "Landscape works");
+    ArtEntity originalOnly = artworkWithoutRendition(9L, "Alpha", null);
+    addRendition(originalOnly, RenditionType.ORIGINAL, "alpha-original.jpg");
+    originalOnly.addCategory(category);
+    ArtEntity thumbnailOnly = artworkWithoutRendition(10L, "Beta", null);
+    addRendition(thumbnailOnly, RenditionType.THUMBNAIL, "beta-thumbnail.jpg");
+    thumbnailOnly.addCategory(category);
+    ArtEntity noImage = artworkWithoutRendition(11L, "Gamma", null);
+    noImage.addCategory(category);
+    ArtEntity blankThumbnail = artworkWithoutRendition(12L, "Omega", null);
+    blankThumbnail.addImageRendition(
+        RenditionType.THUMBNAIL, new ImageRendition(" ", "image/jpeg", 10L, 1200, 800, "checksum"));
+    addRendition(blankThumbnail, RenditionType.GALLERY, "omega-gallery.jpg");
+    blankThumbnail.addCategory(category);
+    when(categoryRepository.findWithArtEntitiesById(5L)).thenReturn(Optional.of(category));
+
+    var originalViewer = categoryService.getCategoryViewer(5L, 9L);
+    var thumbnailViewer = categoryService.getCategoryViewer(5L, 10L);
+    var noImageViewer = categoryService.getCategoryViewer(5L, 11L);
+    var blankThumbnailViewer = categoryService.getCategoryViewer(5L, 12L);
+
+    assertThat(originalViewer.selectedArtwork().imageUrl())
+        .isEqualTo("/artworks/images/alpha-original.jpg");
+    assertThat(originalViewer.featuredImageUrl()).isEqualTo("/artworks/images/alpha-original.jpg");
+    assertThat(originalViewer.featuredImageLinkUrl())
+        .isEqualTo("/artworks/images/alpha-original.jpg");
+    assertThat(thumbnailViewer.selectedArtwork().imageUrl())
+        .isEqualTo("/artworks/images/beta-thumbnail.jpg");
+    assertThat(thumbnailViewer.featuredImageUrl()).isEqualTo("/artworks/images/beta-thumbnail.jpg");
+    assertThat(thumbnailViewer.featuredImageLinkUrl())
+        .isEqualTo("/artworks/images/beta-thumbnail.jpg");
+    assertThat(noImageViewer.selectedArtwork().imageUrl()).isNull();
+    assertThat(noImageViewer.featuredImageUrl()).isNull();
+    assertThat(noImageViewer.featuredImageLinkUrl()).isNull();
+    assertThat(blankThumbnailViewer.selectedArtwork().imageUrl())
+        .isEqualTo("/artworks/images/omega-gallery.jpg");
   }
 
   @Test
@@ -162,14 +293,23 @@ class CategoryServiceTest {
   }
 
   private ArtEntity artwork(long id, String title, String subTitle) {
+    ArtEntity artwork = artworkWithoutRendition(id, title, subTitle);
+    addRendition(artwork, RenditionType.GALLERY, "evening-sky.jpg");
+    return artwork;
+  }
+
+  private ArtEntity artworkWithoutRendition(long id, String title, String subTitle) {
     ArtEntity artwork = new ArtEntity();
     ReflectionTestUtils.setField(artwork, "id", id);
     artwork.setTitle(title);
     artwork.setSubTitle(subTitle);
-    artwork.addImageRendition(
-        RenditionType.GALLERY,
-        new ImageRendition(
-            "artworks/images/evening-sky.jpg", "image/jpeg", 10L, 1200, 800, "checksum"));
     return artwork;
+  }
+
+  private void addRendition(ArtEntity artwork, RenditionType type, String fileName) {
+    artwork.addImageRendition(
+        type,
+        new ImageRendition(
+            "artworks/images/" + fileName, "image/jpeg", 10L, 1200, 800, "checksum"));
   }
 }

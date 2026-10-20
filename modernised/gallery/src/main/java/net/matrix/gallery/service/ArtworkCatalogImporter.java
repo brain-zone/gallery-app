@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
@@ -100,15 +101,7 @@ public class ArtworkCatalogImporter {
 
       applyMetadata(artwork, source);
       synchronizeCategory(artwork, category);
-      artwork.addImageRendition(
-          RenditionType.GALLERY,
-          new ImageRendition(
-              source.objectKey(),
-              source.contentType(),
-              source.sizeBytes(),
-              source.width(),
-              source.height(),
-              source.checksum()));
+      source.renditions().forEach(artwork::addImageRendition);
       artworkRepository.save(artwork);
     }
 
@@ -185,21 +178,65 @@ public class ArtworkCatalogImporter {
           location + " image path must be relative to the catalog images directory");
     }
 
-    String relativeSourcePath =
-        StreamSupport.stream(sourcePath.spliterator(), false)
+    Path imageFileName = sourcePath.getFileName();
+    if (imageFileName == null) {
+      throw new ArtworkCatalogImportException(location + " image filename is missing");
+    }
+
+    Map<RenditionType, ImageRendition> renditions = new EnumMap<>(RenditionType.class);
+    renditions.put(
+        RenditionType.ORIGINAL,
+        prepareRendition(catalogResource, sourcePath, location, RenditionType.ORIGINAL));
+    renditions.put(
+        RenditionType.GALLERY,
+        prepareRendition(
+            catalogResource,
+            sourcePath.resolveSibling("g-" + imageFileName),
+            location,
+            RenditionType.GALLERY));
+    renditions.put(
+        RenditionType.THUMBNAIL,
+        prepareRendition(
+            catalogResource,
+            sourcePath.resolveSibling("t-" + imageFileName),
+            location,
+            RenditionType.THUMBNAIL));
+
+    return new PreparedArtwork(
+        normalize(source.logicalFileName()),
+        source.title(),
+        source.category(),
+        source.artist(),
+        source.description(),
+        source.genre(),
+        Map.copyOf(renditions));
+  }
+
+  private ImageRendition prepareRendition(
+      Resource catalogResource, Path imagePath, String location, RenditionType renditionType) {
+    String relativeImagePath =
+        StreamSupport.stream(imagePath.spliterator(), false)
             .map(Path::toString)
             .collect(Collectors.joining("/"));
-
     Resource imageResource;
     try {
-      imageResource = catalogResource.createRelative(relativeSourcePath);
+      imageResource = catalogResource.createRelative(relativeImagePath);
     } catch (IOException exception) {
       throw new ArtworkCatalogImportException(
-          location + " image path could not be resolved: " + source.fileName(), exception);
+          location
+              + " required "
+              + renditionType
+              + " image path could not be resolved: "
+              + relativeImagePath,
+          exception);
     }
     if (!imageResource.exists() || !imageResource.isReadable()) {
       throw new ArtworkCatalogImportException(
-          location + " refers to missing image " + source.fileName());
+          location
+              + " refers to missing required "
+              + renditionType
+              + " image "
+              + relativeImagePath);
     }
 
     byte[] imageBytes;
@@ -207,7 +244,12 @@ public class ArtworkCatalogImporter {
       imageBytes = input.readAllBytes();
     } catch (IOException exception) {
       throw new ArtworkCatalogImportException(
-          location + " image could not be read: " + source.fileName(), exception);
+          location
+              + " required "
+              + renditionType
+              + " image could not be read: "
+              + relativeImagePath,
+          exception);
     }
     BufferedImage image;
     try (MemoryCacheImageInputStream imageInput =
@@ -226,26 +268,26 @@ public class ArtworkCatalogImporter {
       }
     } catch (IOException exception) {
       throw new ArtworkCatalogImportException(
-          location + " image is invalid: " + source.fileName(), exception);
+          location + " required " + renditionType + " image is invalid: " + relativeImagePath,
+          exception);
     }
     if (image == null) {
       throw new ArtworkCatalogImportException(
-          location + " is not a supported image: " + source.fileName());
+          location
+              + " required "
+              + renditionType
+              + " image is not supported: "
+              + relativeImagePath);
     }
 
-    Path imageFileName = sourcePath.getFileName();
+    Path imageFileName = imagePath.getFileName();
     if (imageFileName == null) {
-      throw new ArtworkCatalogImportException(location + " image filename is missing");
+      throw new ArtworkCatalogImportException(
+          location + " required " + renditionType + " image filename is missing");
     }
     String contentType = contentType(imageFileName.toString(), location);
-    return new PreparedArtwork(
-        normalize(source.logicalFileName()),
-        source.title(),
-        source.category(),
-        source.artist(),
-        source.description(),
-        source.genre(),
-        "artworks/" + relativeSourcePath,
+    return new ImageRendition(
+        "artworks/" + relativeImagePath,
         contentType,
         (long) imageBytes.length,
         image.getWidth(),
@@ -310,8 +352,9 @@ public class ArtworkCatalogImporter {
     artwork.setSubTitle(null);
     artwork.setDescription(source.description());
     artwork.setMedia(null);
-    artwork.setWidth(source.width());
-    artwork.setHeight(source.height());
+    ImageRendition original = source.renditions().get(RenditionType.ORIGINAL);
+    artwork.setWidth(original.width());
+    artwork.setHeight(original.height());
   }
 
   private void synchronizeCategory(ArtEntity artwork, Category requiredCategory) {
@@ -377,12 +420,7 @@ public class ArtworkCatalogImporter {
       String artist,
       String description,
       String genre,
-      String objectKey,
-      String contentType,
-      Long sizeBytes,
-      Integer width,
-      Integer height,
-      String checksum) {}
+      Map<RenditionType, ImageRendition> renditions) {}
 
   public record CatalogImportResult(
       int catalogSize, int categoriesCreated, int artworksCreated, int artworksUpdated) {}

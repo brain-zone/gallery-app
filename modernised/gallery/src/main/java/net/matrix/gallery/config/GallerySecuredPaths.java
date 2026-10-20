@@ -13,5 +13,7 @@ public class GallerySecuredPaths {
     "/api/artworks/**"
   };
 
-  static final String[] PUBLIC_ASSET_PATHS = {"/css/**", "/images/**", "/artworks/images/**"};
+  static final String[] PUBLIC_ASSET_PATHS = {
+    "/css/**", "/images/**", "/js/**", "/artworks/images/**"
+  };
 }
