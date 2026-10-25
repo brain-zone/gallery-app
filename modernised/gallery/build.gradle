@@ -47,6 +47,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.6'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -79,5 +80,20 @@ tasks.withType(SpotBugsTask).configureEach {
 	reports {
 		html.required = true
 		xml.required = false
+	}
+}
+
+tasks.register('provisionArtworkMedia', Sync) {
+	group = 'application'
+	description = 'Copies the curated artwork objects to an external filesystem storage root.'
+	def requestedRoot = providers.gradleProperty('artworkStorageRoot')
+	onlyIf { requestedRoot.isPresent() }
+	from layout.projectDirectory.dir('artwork-media')
+	into requestedRoot.map { layout.projectDirectory.dir(it) }
+	doFirst {
+		if (layout.projectDirectory.dir('artwork-media').asFile.canonicalFile ==
+				requestedRoot.map { layout.projectDirectory.dir(it).asFile.canonicalFile }.get()) {
+			throw new GradleException('Choose an artworkStorageRoot outside the tracked artwork-media source directory.')
+		}
 	}
 }

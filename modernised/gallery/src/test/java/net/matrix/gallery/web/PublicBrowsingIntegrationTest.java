@@ -3,6 +3,7 @@ package net.matrix.gallery.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +13,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,11 +33,11 @@ import org.springframework.test.web.servlet.MockMvc;
 class PublicBrowsingIntegrationTest {
 
   private static final String LANDSCAPE_ORIGINAL_IMAGE_PATH =
-      "/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+      "/media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/original.jpeg";
   private static final String LANDSCAPE_GALLERY_IMAGE_PATH =
-      "/artworks/images/g-3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+      "/media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/gallery.jpeg";
   private static final String LANDSCAPE_THUMBNAIL_IMAGE_PATH =
-      "/artworks/images/t-3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+      "/media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/thumbnail.jpeg";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryRepository categoryRepository;
@@ -70,6 +73,28 @@ class PublicBrowsingIntegrationTest {
                 .string(
                     org.hamcrest.Matchers.not(
                         org.hamcrest.Matchers.containsString("/virtualExhibitions"))));
+  }
+
+  @Test
+  void anonymousVisitorCanRetrieveExternallyStoredArtworkWithGetAndHead() throws Exception {
+    byte[] expected =
+        Files.readAllBytes(
+            Path.of(
+                "artwork-media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/original.jpeg"));
+
+    mockMvc
+        .perform(get(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("image/jpeg"))
+        .andExpect(content().bytes(expected));
+
+    mockMvc
+        .perform(head(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("image/jpeg"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .longValue("Content-Length", expected.length));
   }
 
   @Test
@@ -298,8 +323,11 @@ class PublicBrowsingIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG));
     mockMvc
-        .perform(get("/artworks/images/missing.jpeg").with(anonymous()))
+        .perform(get("/media/artworks/images/missing.jpeg").with(anonymous()))
         .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/media/artworks/../application.properties").with(anonymous()))
+        .andExpect(status().isBadRequest());
   }
 
   @Test

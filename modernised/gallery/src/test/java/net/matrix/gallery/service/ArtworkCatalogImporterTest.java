@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.imageio.ImageIO;
 import net.matrix.gallery.domain.model.ArtEntity;
@@ -26,6 +27,7 @@ import net.matrix.gallery.domain.model.Category;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.repository.CategoryRepository;
+import net.matrix.gallery.storage.FileSystemArtworkStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.core.io.ClassPathResource;
@@ -68,19 +70,19 @@ class ArtworkCatalogImporterTest {
 
     assertThat(artwork).isNotNull();
     assertThat(artwork.getStoragePicture().objectKey())
-        .isEqualTo("artworks/images/test.png")
+        .isEqualTo("artworks/images/test/original.png")
         .doesNotContain("\\");
     assertThat(artwork.getGalleryPicture().objectKey())
-        .isEqualTo("artworks/images/g-test.png")
+        .isEqualTo("artworks/images/test/gallery.png")
         .doesNotContain("\\");
     assertThat(artwork.getThumbnailPicture().objectKey())
-        .isEqualTo("artworks/images/t-test.png")
+        .isEqualTo("artworks/images/test/thumbnail.png")
         .doesNotContain("\\");
   }
 
   @Test
   void parsesAndImportsTheBundledCatalogAcrossMultipleCategories() {
-    ImportHarness harness = new ImportHarness();
+    ImportHarness harness = new ImportHarness(Path.of("artwork-media"));
 
     var result =
         harness.importer.importCatalog(new ClassPathResource("static/artworks/artworks.json"));
@@ -115,9 +117,9 @@ class ArtworkCatalogImporterTest {
         .containsExactly("Abstract");
     assertThat(artwork.getImageRendition())
         .containsOnlyKeys(RenditionType.ORIGINAL, RenditionType.GALLERY, RenditionType.THUMBNAIL);
-    assertRendition(artwork.getStoragePicture(), "test.png", 7, 5);
-    assertRendition(artwork.getGalleryPicture(), "g-test.png", 5, 3);
-    assertRendition(artwork.getThumbnailPicture(), "t-test.png", 2, 1);
+    assertRendition(artwork.getStoragePicture(), "test/original.png", 7, 5);
+    assertRendition(artwork.getGalleryPicture(), "test/gallery.png", 5, 3);
+    assertRendition(artwork.getThumbnailPicture(), "test/thumbnail.png", 2, 1);
     assertThat(artwork.getWidth()).isEqualTo(7);
     assertThat(artwork.getHeight()).isEqualTo(5);
     assertThat(
@@ -177,27 +179,29 @@ class ArtworkCatalogImporterTest {
   @Test
   void missingImageFailsClearlyBeforeImport() throws IOException {
     ImportHarness harness = new ImportHarness();
-    Files.createDirectories(temporaryDirectory.resolve("images"));
+    Files.createDirectories(temporaryDirectory.resolve("artworks/images"));
     Path catalogFile = temporaryDirectory.resolve("artworks.json");
     Files.writeString(catalogFile, singleArtwork("Abstract", "abstract-one.jpg", "One"));
 
     assertThatThrownBy(() -> harness.importer.importCatalog(new FileSystemResource(catalogFile)))
         .isInstanceOf(ArtworkCatalogImportException.class)
-        .hasMessageContaining("refers to missing required ORIGINAL image images/test.png");
+        .hasMessageContaining(
+            "refers to missing required ORIGINAL image artworks/images/test/original.png");
     assertThat(harness.artworks).isEmpty();
   }
 
   @Test
   void missingDerivativeFailsClearlyBeforeImport() throws IOException {
     ImportHarness harness = new ImportHarness();
-    Files.createDirectories(temporaryDirectory.resolve("images"));
-    createImage("test.png", 7, 5, 0xAA0000);
+    Files.createDirectories(temporaryDirectory.resolve("artworks/images"));
+    createImage("test/original.png", 7, 5, 0xAA0000);
     Path catalogFile = temporaryDirectory.resolve("artworks.json");
     Files.writeString(catalogFile, singleArtwork("Abstract", "abstract-one.jpg", "One"));
 
     assertThatThrownBy(() -> harness.importer.importCatalog(new FileSystemResource(catalogFile)))
         .isInstanceOf(ArtworkCatalogImportException.class)
-        .hasMessageContaining("refers to missing required GALLERY image images/g-test.png");
+        .hasMessageContaining(
+            "refers to missing required GALLERY image artworks/images/test/gallery.png");
     assertThat(harness.artworks).isEmpty();
   }
 
@@ -239,7 +243,7 @@ class ArtworkCatalogImporterTest {
   }
 
   private FileSystemResource catalog(String json) throws IOException {
-    Files.createDirectories(temporaryDirectory.resolve("images"));
+    Files.createDirectories(temporaryDirectory.resolve("artworks/images"));
     createRenditions("test.png");
     Path catalogFile = temporaryDirectory.resolve("artworks.json");
     Files.writeString(catalogFile, json);
@@ -247,16 +251,20 @@ class ArtworkCatalogImporterTest {
   }
 
   private void createRenditions(String name) throws IOException {
-    createImage(name, 7, 5, 0xAA0000);
-    createImage("g-" + name, 5, 3, 0x00AA00);
-    createImage("t-" + name, 2, 1, 0x0000AA);
+    int extensionStart = name.lastIndexOf('.');
+    String directory = name.substring(0, extensionStart);
+    String extension = name.substring(extensionStart);
+    createImage(directory + "/original" + extension, 7, 5, 0xAA0000);
+    createImage(directory + "/gallery" + extension, 5, 3, 0x00AA00);
+    createImage(directory + "/thumbnail" + extension, 2, 1, 0x0000AA);
   }
 
   private void createImage(String name, int width, int height, int rgb) throws IOException {
-    Files.createDirectories(temporaryDirectory.resolve("images"));
+    Path imagePath = temporaryDirectory.resolve("artworks/images").resolve(name);
+    Files.createDirectories(Objects.requireNonNull(imagePath.getParent()));
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     image.setRGB(0, 0, rgb);
-    ImageIO.write(image, "png", temporaryDirectory.resolve("images").resolve(name).toFile());
+    ImageIO.write(image, "png", imagePath.toFile());
   }
 
   private void assertRendition(
@@ -265,7 +273,7 @@ class ArtworkCatalogImporterTest {
       int width,
       int height)
       throws IOException, NoSuchAlgorithmException {
-    Path file = temporaryDirectory.resolve("images").resolve(fileName);
+    Path file = temporaryDirectory.resolve("artworks/images").resolve(fileName);
     assertThat(rendition.objectKey()).isEqualTo("artworks/images/" + fileName);
     assertThat(rendition.contentType()).isEqualTo("image/png");
     assertThat(rendition.width()).isEqualTo(width);
@@ -296,7 +304,7 @@ class ArtworkCatalogImporterTest {
         + "\"prices\":[{\"type\":\"SELL\",\"amount\":25.00,\"currency\":\"USD\"}]}";
   }
 
-  private static final class ImportHarness {
+  private final class ImportHarness {
     private final ArtworkRepository artworkRepository = mock(ArtworkRepository.class);
     private final CategoryRepository categoryRepository = mock(CategoryRepository.class);
     private final Map<String, ArtEntity> artworks = new HashMap<>();
@@ -304,6 +312,10 @@ class ArtworkCatalogImporterTest {
     private final ArtworkCatalogImporter importer;
 
     private ImportHarness() {
+      this(temporaryDirectory);
+    }
+
+    private ImportHarness(Path storageRoot) {
       when(categoryRepository.findByCategoryNameIgnoreCase(any(String.class)))
           .thenAnswer(
               invocation ->
@@ -331,7 +343,8 @@ class ArtworkCatalogImporterTest {
               new ObjectMapper(),
               new DefaultResourceLoader(),
               artworkRepository,
-              categoryRepository);
+              categoryRepository,
+              new FileSystemArtworkStorage(storageRoot.toString()));
     }
 
     private static String normalize(String value) {

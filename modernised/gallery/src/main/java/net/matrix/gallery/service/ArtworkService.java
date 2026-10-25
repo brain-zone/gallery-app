@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.List;
 import net.matrix.gallery.domain.model.ArtEntity;
 import net.matrix.gallery.domain.value.ArtworkDetail;
-import net.matrix.gallery.domain.value.ArtworkImageUrl;
 import net.matrix.gallery.domain.value.CategoryReference;
 import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionDetail;
@@ -19,9 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArtworkService {
 
   private final ArtworkRepository artworkRepository;
+  private final ArtworkUrlResolver artworkUrlResolver;
 
-  public ArtworkService(ArtworkRepository artworkRepository) {
+  public ArtworkService(
+      ArtworkRepository artworkRepository, ArtworkUrlResolver artworkUrlResolver) {
     this.artworkRepository = artworkRepository;
+    this.artworkUrlResolver = artworkUrlResolver;
   }
 
   public ArtworkDetail getArtwork(long id) {
@@ -46,7 +48,7 @@ public class ArtworkService {
                     new RenditionDetail(
                         entry.getKey(),
                         entry.getValue().objectKey(),
-                        ArtworkImageUrl.fromObjectKey(entry.getValue().objectKey()),
+                        artworkUrlResolver.resolve(entry.getValue().objectKey()),
                         entry.getValue().contentType(),
                         entry.getValue().sizeBytes(),
                         entry.getValue().width(),
@@ -82,6 +84,6 @@ public class ArtworkService {
     if (rendition == null) {
       rendition = artwork.getImageRendition().get(RenditionType.THUMBNAIL);
     }
-    return rendition == null ? null : ArtworkImageUrl.fromObjectKey(rendition.objectKey());
+    return rendition == null ? null : artworkUrlResolver.resolve(rendition.objectKey());
   }
 }

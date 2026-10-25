@@ -28,17 +28,17 @@ This module is the actively developed Spring Boot implementation of the Gallery 
 
 ### Curated catalog bootstrap
 
-At application startup, `ArtworkCatalogStartup` invokes the transactional `ArtworkCatalogImporter` against `static/artworks/artworks.json`.
+At application startup, `ArtworkCatalogStartup` invokes the transactional `ArtworkCatalogImporter` against the bundled metadata file `static/artworks/artworks.json`. Artwork bytes are read through `ArtworkStorage` from external filesystem storage; they are not application resources.
 
 The importer:
 
 - validates all catalog records and referenced images before writing;
-- imports 10 artworks across Abstract, Landscape, Portrait, Sculpture, and Urban;
+- imports 14 artworks across Abstract, Landscape, Portrait, Sculpture, Urban, and Wireframes;
 - reuses category names with case-insensitive exact matching and creates only missing categories;
 - uses the source `logicalFileName`, normalized to lower case, as `ArtEntity.catalogKey`;
 - relies on the nullable unique `catalog_key` index introduced by Flyway V4;
 - updates an existing catalog record on repeat startup rather than creating a duplicate;
-- synchronizes one category and one `GALLERY` rendition per curated record;
+- synchronizes one category and the `ORIGINAL`, `GALLERY`, and `THUMBNAIL` renditions per curated record;
 - derives image content type, byte size, dimensions, and SHA-256 checksum;
 - persists source artist and genre in dedicated fields; and
 - validates price entries but does not persist them because the current domain has no price model.
@@ -70,7 +70,7 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 | `GET /api/artworks/{id}` | Artwork detail as JSON | Anonymous |
 | `GET /css/**` | Gallery stylesheet | Anonymous |
 | `GET /images/**` | Preserved shell and Bio image assets | Anonymous |
-| `GET /artworks/images/**` | Bundled catalog images | Anonymous |
+| `GET`/`HEAD /media/**` | Externally stored artwork originals and renditions | Anonymous |
 
 ### Security behavior
 
@@ -108,6 +108,41 @@ startup fails without exposing a password value.
 - PostgreSQL dependencies are present, but PostgreSQL migration/integration and production-readiness proof remain future work.
 
 ## Build, test, and run
+
+### Artwork filesystem storage
+
+The repository's 42 curated media source files are held outside `src/main/resources`. Each artwork
+has a directory named with its stable source identity and three purpose-named rendition objects:
+
+```text
+artwork-media/artworks/images/{artwork-identity}/original.{ext}
+artwork-media/artworks/images/{artwork-identity}/gallery.{ext}
+artwork-media/artworks/images/{artwork-identity}/thumbnail.{ext}
+```
+
+The default local configuration reads the tracked external-media directory directly:
+
+```properties
+gallery.artwork.storage.root=${GALLERY_ARTWORK_STORAGE_ROOT:./artwork-media}
+```
+
+Run Gradle from `modernised/gallery`, so the default relative path resolves correctly. To provision
+an independent writable storage root, copy the complete curated set with the repeatable Gradle task
+and point the application at it:
+
+```bash
+./gradlew provisionArtworkMedia -PartworkStorageRoot=/absolute/path/to/gallery-artwork-media
+export GALLERY_ARTWORK_STORAGE_ROOT=/absolute/path/to/gallery-artwork-media
+```
+
+The task deliberately requires an explicit destination and refuses to overwrite the tracked source
+directory. Preserve the `artworks/images/{artwork-identity}/{rendition}.{ext}` layout because those
+paths are persistent logical object keys in the database. The application validates all 42 objects
+at startup and fails before catalogue writes when any required original or derivative is unavailable
+or invalid.
+
+Browser-facing URLs are resolved separately from storage keys and currently use `/media/{objectKey}`.
+That resolver can later be replaced by a cloud/CDN URL strategy without changing gallery templates.
 
 From this module:
 

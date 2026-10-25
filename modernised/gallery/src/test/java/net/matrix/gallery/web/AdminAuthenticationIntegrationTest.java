@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,6 +25,9 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest(properties = "GALLERY_ADMIN_BOOTSTRAP_PASSWORD=test-bootstrap-password")
 @AutoConfigureMockMvc
+@SuppressFBWarnings(
+    value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+    justification = "Authentication assertions guarantee the MockMvc session used by these tests")
 class AdminAuthenticationIntegrationTest {
 
   @Autowired private MockMvc mockMvc;

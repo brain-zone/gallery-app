@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.List;
 import net.matrix.gallery.domain.model.ArtEntity;
 import net.matrix.gallery.domain.model.Category;
-import net.matrix.gallery.domain.value.ArtworkImageUrl;
 import net.matrix.gallery.domain.value.ArtworkSummary;
 import net.matrix.gallery.domain.value.CategoryDetail;
 import net.matrix.gallery.domain.value.CategorySummary;
@@ -22,9 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryService {
 
   private final CategoryRepository categoryRepository;
+  private final ArtworkUrlResolver artworkUrlResolver;
 
-  public CategoryService(CategoryRepository categoryRepository) {
+  public CategoryService(
+      CategoryRepository categoryRepository, ArtworkUrlResolver artworkUrlResolver) {
     this.categoryRepository = categoryRepository;
+    this.artworkUrlResolver = artworkUrlResolver;
   }
 
   public List<CategorySummary> listCategories() {
@@ -142,7 +144,7 @@ public class CategoryService {
     for (RenditionType priority : priorities) {
       ImageRendition rendition = artwork.getImageRendition().get(priority);
       if (rendition != null) {
-        String url = ArtworkImageUrl.fromObjectKey(rendition.objectKey());
+        String url = artworkUrlResolver.resolve(rendition.objectKey());
         if (url != null) {
           return url;
         }

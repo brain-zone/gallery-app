@@ -3,11 +3,9 @@ package net.matrix.gallery.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.imageio.ImageIO;
 import net.matrix.gallery.domain.model.ArtEntity;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.ArtworkRepository;
@@ -69,23 +67,19 @@ class ArtworkCatalogImporterPersistenceTest {
   void missingImageValidationLeavesNoPartialDatabaseState() throws IOException {
     long artworkCount = artworkRepository.count();
     long categoryCount = categoryRepository.count();
-    Files.createDirectories(temporaryDirectory.resolve("images"));
-    BufferedImage image = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
-    ImageIO.write(image, "png", temporaryDirectory.resolve("images/present.png").toFile());
-    ImageIO.write(image, "png", temporaryDirectory.resolve("images/g-present.png").toFile());
-    ImageIO.write(image, "png", temporaryDirectory.resolve("images/t-present.png").toFile());
     Path catalog = temporaryDirectory.resolve("artworks.json");
     Files.writeString(
         catalog,
         "{\"artworks\":["
-            + artwork("First", "first.jpg", "images/present.png")
+            + artwork("First", "first.jpg", "images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg")
             + ","
             + artwork("Second", "second.jpg", "images/missing.png")
             + "]}");
 
     assertThatThrownBy(() -> importer.importCatalog(new FileSystemResource(catalog)))
         .isInstanceOf(ArtworkCatalogImportException.class)
-        .hasMessageContaining("refers to missing required ORIGINAL image images/missing.png");
+        .hasMessageContaining(
+            "refers to missing required ORIGINAL image artworks/images/missing/original.png");
     assertThat(artworkRepository.count()).isEqualTo(artworkCount);
     assertThat(categoryRepository.count()).isEqualTo(categoryCount);
     assertThat(artworkRepository.findByCatalogKeyIgnoreCase("first.jpg")).isEmpty();
