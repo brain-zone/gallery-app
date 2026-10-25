@@ -1,6 +1,21 @@
 # Gallery Application — Modernised
 
-This module is the actively developed Spring Boot implementation of the Gallery Application. It modernises verified legacy behaviour in small, tested vertical slices rather than claiming a complete feature-for-feature port.
+This module is the actively developed Spring Boot implementation of the Gallery Application. It
+modernises verified legacy behaviour in small, tested vertical slices rather than claiming a
+complete feature-for-feature port.
+
+## Modernisation approach
+
+The repository retains both implementations:
+
+- `legacy/gallery` is the historical application and the evidence source for existing behaviour;
+- `modernised/gallery` is the replacement Spring Boot application, built and accepted one vertical
+  slice at a time.
+
+Modernisation is delivered through incremental, tested vertical slices. Each slice is verified
+against the relevant legacy behaviour before it is accepted as the modern replacement. The legacy
+module remains available as the behavioural reference until every required capability has a verified
+modern implementation and the final cutover is complete.
 
 
 ## Current stack
@@ -12,7 +27,7 @@ This module is the actively developed Spring Boot implementation of the Gallery 
 | Views | Thymeleaf templates with shared navigation and preserved legacy visual identity |
 | Security | Spring Security form login and HTTP Basic |
 | Persistence | Spring Data JPA and transactional services |
-| Schema | Forward-only Flyway migrations V0–V4 |
+| Schema | Forward-only Flyway migrations V0–V5 |
 | Database | H2 for verified local/runtime tests; PostgreSQL driver and Flyway support included but not production-proven |
 | Build and quality | Gradle, JUnit 5, Spring tests, JaCoCo, Spotless, and SpotBugs |
 
@@ -102,7 +117,7 @@ startup fails without exposing a password value.
 
 - `ArtEntity`, `Category`, `Comment`, and rendition value objects form the current model.
 - `ArtworkRepository` and `CategoryRepository` provide aggregate loading and catalog/category identity lookups.
-- Flyway creates the schema and indexes, seeds five categories, records the superseded V3 demo, and prepares catalog identity in V4.
+- Flyway creates the schema and indexes, seeds five categories, records the superseded V3 demo, prepares catalog identity in V4, and adds administrator identity persistence in V5.
 - Hibernate runs with `ddl-auto=validate`; Flyway owns schema changes.
 - H2 is the verified database for local and automated execution.
 - PostgreSQL dependencies are present, but PostgreSQL migration/integration and production-readiness proof remain future work.
@@ -157,12 +172,14 @@ cd modernised/gallery
 
 Open [http://localhost:8080](http://localhost:8080). The root renders the restored splash home; Galleries links to `/categories` and Bio links to `/bio`.
 
-The latest verification on `develop` passed:
+The latest local verification on `feature/admin-artwork-upload` passed:
 
-- 71 automated tests with no failures, errors, or skips;
+- 113 automated tests with no failures, errors, or skips;
 - the complete Gradle build, including Spotless, SpotBugs, JaCoCo, and packaging;
-- real HTTP checks for the splash home, Bio, public browsing pages/APIs, CSS, images, missing resources, login success/failure, authenticated `/admin`, CSRF enforcement, and protected Actuator access; and
-- startup import of 10 curated records plus repeat-safe importer coverage.
+- HTTP integration checks for the splash home, Bio, public browsing pages/APIs, externally stored
+  artwork media, missing and unsafe media paths, login success/failure, authenticated `/admin`, CSRF
+  enforcement, and protected Actuator access; and
+- startup import of 14 curated records with 42 renditions plus repeat-safe importer coverage.
 
 The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `develop`, pull requests to `master`, and manual dispatch. A separate dependency-submission workflow is configured for `master` pushes and manual dispatch.
 
@@ -177,7 +194,7 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 - Artwork upload, curation, exhibition management, and related administration workflows are future slices.
 - The bundled catalog uses the five seeded categories and may create a missing category during import. Production taxonomy ownership will be addressed when content-management workflows are introduced.
 - `generalViewable` and `privilegeViewable` remain in the inherited domain model but are not yet enforced as public-access rules.
-- Authentication currently uses Spring Boot's generated development user; production identities, roles, and authorization remain future work.
+- Authentication uses a persisted administrator identity with `ROLE_ADMIN`; broader identity and authorization requirements remain future work.
 - Catalog price data is validated but intentionally remains outside the current domain model.
 - PostgreSQL support is present as a dependency, but production/integration proof remains future work.
 
@@ -186,7 +203,6 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 - artwork upload, curation, update/delete, and related administrator workflows;
 - exhibition creation and management;
 - visitor interest capture;
-- approved previous/next or modern lightbox behavior;
 - production authentication, with OAuth/OIDC still future work;
 - PostgreSQL integration and migration proof;
 - container, deployment, health-policy, observability, and operational documentation; and
