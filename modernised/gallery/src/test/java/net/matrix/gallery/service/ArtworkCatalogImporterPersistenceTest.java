@@ -20,7 +20,10 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @SpringBootTest(
-    properties = "spring.datasource.url=jdbc:h2:mem:catalog-import-persistence;DB_CLOSE_DELAY=-1")
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:catalog-import-persistence;DB_CLOSE_DELAY=-1",
+      "GALLERY_ADMIN_BOOTSTRAP_PASSWORD=test-bootstrap-password"
+    })
 class ArtworkCatalogImporterPersistenceTest {
 
   @Autowired private ArtworkCatalogImporter importer;

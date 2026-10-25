@@ -64,7 +64,7 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 | `GET /bio` | Portfolio Bio page | Anonymous |
 | `GET /login` | Custom Spring Security login page | Anonymous |
 | `POST /login` | Spring Security form authentication | Anonymous with CSRF token |
-| `GET /admin` | Administration landing page | Authenticated |
+| `GET /admin` | Administration landing page | `ROLE_ADMIN` only |
 | `GET /api/categories` | Category summaries as JSON | Anonymous |
 | `GET /api/categories/{id}` | Category and artwork summaries as JSON | Anonymous |
 | `GET /api/artworks/{id}` | Artwork detail as JSON | Anonymous |
@@ -78,10 +78,25 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 - Error dispatches are permitted so missing public resources remain 404 instead of becoming authentication failures.
 - The custom login form posts to `/login`, uses Spring Security's `username` and `password` fields, and includes a CSRF token.
 - Successful authentication always redirects to `/admin`; failed authentication returns to `/login?error`.
-- `/admin` is protected but currently requires authentication only, not an administrator role.
+- `/admin` and `/admin/**` require the persisted administrator's `ROLE_ADMIN` authority.
 - Anonymous Actuator access remains protected; for example, `/actuator/health` returns 401.
 - HTTP Basic remains enabled alongside form login.
-- Spring Boot's generated development user/password is the current runtime credential source. This is not production authentication.
+- Spring Security loads the administrator from the database; Spring Boot's generated development user is not used.
+
+### Administrator bootstrap
+
+On the first startup against a fresh database, supply the initial administrator password through
+the environment and then start the application:
+
+```bash
+export GALLERY_ADMIN_BOOTSTRAP_PASSWORD='<choose-a-strong-password>'
+./gradlew bootRun
+```
+
+The application creates the `admin` account with `ROLE_ADMIN` and stores only a BCrypt hash. Later
+startups preserve the existing account and password hash, so the environment variable is no longer
+required after the account exists. If the account is absent and the variable is missing or blank,
+startup fails without exposing a password value.
 
 ## Persistence model and migrations
 

@@ -23,7 +23,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "GALLERY_ADMIN_BOOTSTRAP_PASSWORD=test-bootstrap-password")
 @AutoConfigureMockMvc
 class PublicBrowsingIntegrationTest {
 
