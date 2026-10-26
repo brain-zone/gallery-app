@@ -17,7 +17,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
   @Query(
       """
         SELECT new net.matrix.gallery.domain.value.CategorySummary(c.id, c.categoryName, count(a.id)) FROM Category c
-        LEFT JOIN  c.artEntities a
+        LEFT JOIN c.artEntities a ON a.generalViewable = true
         GROUP BY c.id, c.categoryName  ORDER BY c.categoryName ASC
         """)
   public List<CategorySummary> listCategorySummaries();

@@ -29,7 +29,7 @@ public class ArtworkService {
   public ArtworkDetail getArtwork(long id) {
     ArtEntity artwork =
         artworkRepository
-            .findDetailById(id)
+            .findPublicDetailById(id)
             .orElseThrow(
                 () -> new GalleryResourceNotFoundException("Artwork " + id + " was not found"));
 

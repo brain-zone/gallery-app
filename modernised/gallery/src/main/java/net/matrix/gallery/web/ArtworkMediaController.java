@@ -1,6 +1,7 @@
 package net.matrix.gallery.web;
 
 import java.io.IOException;
+import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.storage.ArtworkStorage;
 import net.matrix.gallery.storage.InvalidArtworkObjectKeyException;
 import net.matrix.gallery.storage.StoredArtwork;
@@ -19,15 +20,21 @@ import org.springframework.web.server.ResponseStatusException;
 public class ArtworkMediaController {
 
   private final ArtworkStorage artworkStorage;
+  private final ArtworkRepository artworkRepository;
 
-  public ArtworkMediaController(ArtworkStorage artworkStorage) {
+  public ArtworkMediaController(
+      ArtworkStorage artworkStorage, ArtworkRepository artworkRepository) {
     this.artworkStorage = artworkStorage;
+    this.artworkRepository = artworkRepository;
   }
 
   @GetMapping("/media/{*objectKey}")
   public ResponseEntity<Resource> get(@PathVariable String objectKey) {
     String normalizedKey = objectKey.startsWith("/") ? objectKey.substring(1) : objectKey;
     try {
+      if (!artworkRepository.existsPublicByRenditionObjectKey(normalizedKey)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      }
       StoredArtwork artwork =
           artworkStorage
               .read(normalizedKey)

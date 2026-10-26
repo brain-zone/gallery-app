@@ -193,7 +193,7 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 
 - Artwork upload, curation, exhibition management, and related administration workflows are future slices.
 - The bundled catalog uses the five seeded categories and may create a missing category during import. Production taxonomy ownership will be addressed when content-management workflows are introduced.
-- `generalViewable` and `privilegeViewable` remain in the inherited domain model but are not yet enforced as public-access rules.
+- `generalViewable` controls anonymous listings, counts, artwork details, navigation, APIs, and rendition delivery. `privilegeViewable` remains outside the current public-access model.
 - Authentication uses a persisted administrator identity with `ROLE_ADMIN`; broader identity and authorization requirements remain future work.
 - Catalog price data is validated but intentionally remains outside the current domain model.
 - PostgreSQL support is present as a dependency, but production/integration proof remains future work.

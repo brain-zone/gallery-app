@@ -14,4 +14,13 @@ public interface ArtworkRepository extends JpaRepository<ArtEntity, Long> {
   @EntityGraph(attributePaths = {"categories", "imageRendition"})
   @Query("SELECT DISTINCT artwork FROM ArtEntity artwork WHERE artwork.id = :id")
   Optional<ArtEntity> findDetailById(@Param("id") Long id);
+
+  @EntityGraph(attributePaths = {"categories", "imageRendition"})
+  @Query(
+      "SELECT DISTINCT artwork FROM ArtEntity artwork WHERE artwork.id = :id AND artwork.generalViewable = true")
+  Optional<ArtEntity> findPublicDetailById(@Param("id") Long id);
+
+  @Query(
+      "SELECT CASE WHEN count(artwork) > 0 THEN true ELSE false END FROM ArtEntity artwork JOIN artwork.imageRendition rendition WHERE artwork.generalViewable = true AND rendition.objectKey = :objectKey")
+  boolean existsPublicByRenditionObjectKey(@Param("objectKey") String objectKey);
 }

@@ -70,6 +70,7 @@ public class CategoryService {
 
   private List<ArtEntity> orderedArtworks(Category category) {
     return category.getArtEntities().stream()
+        .filter(ArtEntity::isGeneralViewable)
         .sorted(
             Comparator.comparing(
                     ArtEntity::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))

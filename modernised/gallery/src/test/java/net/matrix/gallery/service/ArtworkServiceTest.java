@@ -35,7 +35,7 @@ class ArtworkServiceTest {
   @Test
   void mapsArtworkCategoriesAndRenditionsToDetail() {
     ArtEntity artwork = artwork();
-    when(artworkRepository.findDetailById(9L)).thenReturn(Optional.of(artwork));
+    when(artworkRepository.findPublicDetailById(9L)).thenReturn(Optional.of(artwork));
 
     var detail = artworkService.getArtwork(9L);
 
@@ -73,12 +73,12 @@ class ArtworkServiceTest {
               assertThat(rendition.height()).isEqualTo(800);
               assertThat(rendition.checksum()).isEqualTo("checksum");
             });
-    verify(artworkRepository).findDetailById(9L);
+    verify(artworkRepository).findPublicDetailById(9L);
   }
 
   @Test
   void missingArtworkRaisesNotFoundException() {
-    when(artworkRepository.findDetailById(404L)).thenReturn(Optional.empty());
+    when(artworkRepository.findPublicDetailById(404L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> artworkService.getArtwork(404L))
         .isInstanceOf(GalleryResourceNotFoundException.class)

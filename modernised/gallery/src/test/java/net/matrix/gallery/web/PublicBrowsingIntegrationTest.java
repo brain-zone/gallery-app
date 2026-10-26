@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -328,6 +329,61 @@ class PublicBrowsingIntegrationTest {
     mockMvc
         .perform(get("/media/artworks/../application.properties").with(anonymous()))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void allCuratedArtworksArePublic() {
+    assertThat(artworkRepository.findAll())
+        .filteredOn(artwork -> artwork.getCatalogKey() != null)
+        .hasSize(14)
+        .allMatch(artwork -> artwork.isGeneralViewable());
+  }
+
+  @Test
+  @Transactional
+  void explicitlyHiddenArtworkIsAbsentFromPublicBrowsingDetailAndMedia() throws Exception {
+    long originalCategoryCount =
+        categoryRepository.listCategorySummaries().stream()
+            .filter(category -> category.id() == categoryId)
+            .findFirst()
+            .orElseThrow()
+            .artEntityCount();
+    var artwork = artworkRepository.findById(artworkId).orElseThrow();
+    artwork.setGeneralViewable(false);
+    artworkRepository.saveAndFlush(artwork);
+
+    mockMvc
+        .perform(get("/api/categories").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$[?(@.id == " + categoryId + ")].artEntityCount")
+                .value((int) originalCategoryCount - 1));
+    mockMvc
+        .perform(get("/api/categories/{id}", categoryId).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.artworks[?(@.title == 'Sunrise over the Mountain')]").doesNotExist());
+    mockMvc
+        .perform(get("/categories/{id}", categoryId).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("Sunrise over the Mountain"))));
+    mockMvc
+        .perform(
+            get("/categories/{id}/artworks/{artworkId}", categoryId, artworkId).with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/artworks/{id}", artworkId).with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/api/artworks/{id}", artworkId).with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
+        .andExpect(status().isNotFound());
   }
 
   @Test

@@ -64,6 +64,23 @@ class ArtworkCatalogImporterPersistenceTest {
   }
 
   @Test
+  void repeatImportPreservesAnExplicitlyHiddenCuratedArtwork() {
+    ArtEntity artwork =
+        artworkRepository.findByCatalogKeyIgnoreCase("abstract_dream_painting.jpg").orElseThrow();
+    artwork.setGeneralViewable(false);
+    artworkRepository.saveAndFlush(artwork);
+
+    importer.importBundledCatalog();
+
+    assertThat(
+            artworkRepository
+                .findByCatalogKeyIgnoreCase("abstract_dream_painting.jpg")
+                .orElseThrow()
+                .isGeneralViewable())
+        .isFalse();
+  }
+
+  @Test
   void missingImageValidationLeavesNoPartialDatabaseState() throws IOException {
     long artworkCount = artworkRepository.count();
     long categoryCount = categoryRepository.count();
