@@ -116,18 +116,11 @@ class PublicBrowsingIntegrationTest {
     assertThat(navigation).hasSize(1);
     assertThat(navigation.select("a[href]").eachAttr("href"))
         .containsExactly("/", "/categories", "/bio");
-    assertThat(
-            navigation.select("a").stream()
-                .map(
-                    link ->
-                        link.select("img").isEmpty()
-                            ? link.text()
-                            : link.select("img").attr("alt")))
-        .containsExactly("Home", "Galleries", "Bio");
+    assertThat(navigation.select("a").eachText()).containsExactly("Home", "Galleries", "Bio");
+    assertThat(navigation.select("img")).isEmpty();
     var disabled = navigation.select("span[role=link][aria-disabled=true]");
     assertThat(disabled).hasSize(1);
-    assertThat(disabled.text() + disabled.select("img").attr("alt"))
-        .isEqualTo("Virtual Exhibitions");
+    assertThat(disabled.text()).isEqualTo("Virtual Exhibitions");
     assertThat(disabled.select("[href], [tabindex], [onclick], [aria-current]")).isEmpty();
     var current = document.select("[aria-current=page]");
     if (currentHref == null) {
@@ -149,7 +142,7 @@ class PublicBrowsingIntegrationTest {
         .andExpect(content().string(org.hamcrest.Matchers.containsString("home-shell")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("/categories")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/indeximage.jpg")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/ind_exhib.gif")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Virtual Exhibitions")))
         .andExpect(
             content()
                 .string(
@@ -516,7 +509,7 @@ class PublicBrowsingIntegrationTest {
     HttpResponse<String> notFound = htmlResponse("/categories/" + Long.MAX_VALUE);
     assertThat(notFound.statusCode()).isEqualTo(404);
     assertThat(notFound.body())
-        .contains("Page not found", "Return to the public gallery")
+        .contains("Page not found", "Home")
         .doesNotContain("GalleryResourceNotFoundException", "Category 9223372036854775807");
 
     HttpResponse<String> unauthorized = httpResponse("/actuator/health");
@@ -524,7 +517,7 @@ class PublicBrowsingIntegrationTest {
     assertThat(unauthorized.headers().firstValue("WWW-Authenticate"))
         .hasValue("Basic realm=\"Realm\"");
     assertThat(unauthorized.body())
-        .contains("Authentication required", "return to the public gallery")
+        .contains("Authentication required", "Home")
         .doesNotContain("Exception", "stack trace");
   }
 

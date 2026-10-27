@@ -2,23 +2,16 @@
           xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
   <th:block th:fragment="navigation(current, splash)">
     <nav th:class="${splash} ? 'home-nav' : 'primary-nav'" aria-label="Primary">
-      <a class="public-nav__home" th:href="@{/}"
+      <a class="public-nav__item public-nav__home" th:href="@{/}"
          th:attr="aria-current=${current == 'home'} ? 'page' : null">Home</a>
-      <a class="home-nav__item home-nav__galleries primary-nav__galleries"
-         th:href="@{/categories}" th:attr="aria-current=${current == 'galleries'} ? 'page' : null">
-        <img th:if="${splash}" th:src="@{/images/ind_galleries.gif}" alt="Galleries">
-        <span th:unless="${splash}" class="visually-hidden">Galleries</span>
-      </a>
-      <span class="home-nav__item home-nav__exhibitions primary-nav__exhibitions"
+      <a class="public-nav__item public-nav__galleries" th:href="@{/categories}"
+         th:attr="aria-current=${current == 'galleries'} ? 'page' : null">Galleries</a>
+      <span class="public-nav__item public-nav__exhibitions"
             role="link" aria-disabled="true" title="Virtual Exhibitions is not available yet">
-        <img th:if="${splash}" th:src="@{/images/ind_exhib.gif}" alt="Virtual Exhibitions">
-        <span th:unless="${splash}" class="visually-hidden">Virtual Exhibitions</span>
+        Virtual Exhibitions
       </span>
-      <a class="home-nav__item home-nav__bio primary-nav__bio"
-         th:href="@{/bio}" th:attr="aria-current=${current == 'bio'} ? 'page' : null">
-        <img th:if="${splash}" th:src="@{/images/ind_bio.gif}" alt="Bio">
-        <span th:unless="${splash}" class="visually-hidden">Bio</span>
-      </a>
+      <a class="public-nav__item public-nav__bio" th:href="@{/bio}"
+         th:attr="aria-current=${current == 'bio'} ? 'page' : null">Bio</a>
     </nav>
     <nav th:replace="~{fragments/navigation :: accountNavigation}"></nav>
   </th:block>

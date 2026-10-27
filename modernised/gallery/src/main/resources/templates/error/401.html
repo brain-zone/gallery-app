@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Authentication required · Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <link rel="stylesheet" th:href="@{/css/gallery.css(v='gal005-text-navigation-2')}">
   </head>
   <body>
     <div class="page-shell">
@@ -21,7 +21,7 @@
           <section class="error-box">
             <h1>Authentication required</h1>
             <p>You need to sign in to access this resource.</p>
-            <p><a th:href="@{/login}">Sign in</a> or <a th:href="@{/}">return to the public gallery</a>.</p>
+            <p><a th:href="@{/login}">Sign in</a> or go <a th:href="@{/}">Home</a>.</p>
           </section>
         </main>
       </div>

@@ -74,6 +74,7 @@ class AdminAuthenticationIntegrationTest {
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Create an Exhibition")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Upload Artwork")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(">Home</a>")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Log Out")))
         .andExpect(
             content()
