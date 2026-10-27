@@ -27,8 +27,8 @@ modern implementation and the final cutover is complete.
 | Views | Thymeleaf templates with shared navigation and preserved legacy visual identity |
 | Security | Spring Security form login and HTTP Basic |
 | Persistence | Spring Data JPA and transactional services |
-| Schema | Forward-only Flyway migrations V0–V5 |
-| Database | H2 for verified local/runtime tests; PostgreSQL driver and Flyway support included but not production-proven |
+| Schema | Forward-only Flyway migrations V0–V6 |
+| Database | File-backed H2 for normal local runs; isolated in-memory H2 for automated tests |
 | Build and quality | Gradle, JUnit 5, Spring tests, JaCoCo, Spotless, and SpotBugs |
 
 ## Implemented and verified
@@ -80,6 +80,8 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 | `GET /login` | Custom Spring Security login page | Anonymous |
 | `POST /login` | Spring Security form authentication | Anonymous with CSRF token |
 | `GET /admin` | Administration landing page | `ROLE_ADMIN` only |
+| `GET /admin/artworks/upload` | Artwork-upload form | `ROLE_ADMIN` only |
+| `POST /admin/artworks/upload` | Generate renditions and publish artwork | `ROLE_ADMIN` and CSRF token |
 | `GET /api/categories` | Category summaries as JSON | Anonymous |
 | `GET /api/categories/{id}` | Category and artwork summaries as JSON | Anonymous |
 | `GET /api/artworks/{id}` | Artwork detail as JSON | Anonymous |
@@ -117,10 +119,45 @@ startup fails without exposing a password value.
 
 - `ArtEntity`, `Category`, `Comment`, and rendition value objects form the current model.
 - `ArtworkRepository` and `CategoryRepository` provide aggregate loading and catalog/category identity lookups.
-- Flyway creates the schema and indexes, seeds five categories, records the superseded V3 demo, prepares catalog identity in V4, and adds administrator identity persistence in V5.
+- Flyway migrations V0–V6 create and evolve the schema, seed the initial categories, import the
+  curated catalog model, persist administrator identity, and activate general artwork visibility.
 - Hibernate runs with `ddl-auto=validate`; Flyway owns schema changes.
-- H2 is the verified database for local and automated execution.
+- Normal local execution uses file-backed H2 at `./gallery-data/gallery` (relative to
+  `modernised/gallery`). Override the location without changing source using
+  `GALLERY_DATABASE_PATH=/absolute/path/to/gallery-db/gallery`. H2 creates files alongside that
+  basename; `gallery-data/` is excluded from Git.
+- Automated tests override the datasource with isolated in-memory H2 databases.
 - PostgreSQL dependencies are present, but PostgreSQL migration/integration and production-readiness proof remain future work.
+
+To reset only the local database, stop the application and remove the generated files whose names
+begin with `gallery` from `modernised/gallery/gallery-data/` (or from the configured
+`GALLERY_DATABASE_PATH` directory). On the next startup, supply a new
+`GALLERY_ADMIN_BOOTSTRAP_PASSWORD`; Flyway recreates the schema, the 14 curated artworks are
+re-imported once, and the administrator is bootstrapped again. Resetting the database does not
+delete uploaded rendition directories from a separately configured artwork storage root.
+
+### Administrator artwork upload
+
+After signing in as `admin`, follow **Upload an artwork** from `/admin`. The form requires one JPEG
+or PNG image (maximum 10 MB), a title, and exactly one existing category selected from the database.
+Artist, genre, subtitle, media, display date, caption, and description are optional. Category
+creation and publication controls are intentionally absent.
+
+Each successful upload receives a UUID and is stored as:
+
+```text
+artwork-media/artworks/images/{uuid}/original.{jpeg|jpg|png}
+artwork-media/artworks/images/{uuid}/gallery.{jpeg|jpg|png}
+artwork-media/artworks/images/{uuid}/thumbnail.{jpeg|jpg|png}
+```
+
+The original is preserved byte-for-byte. Gallery (maximum 800 × 600) and thumbnail (maximum 96 ×
+96) renditions preserve aspect ratio and are not upscaled. JPA stores their logical object keys,
+content types, byte sizes, dimensions, and SHA-256 checksums—not image binaries. The files are
+published as one directory before metadata is committed; a validation or persistence failure
+removes the new directory. New artwork has `generalViewable=true` immediately, retains the existing
+default `privilegeViewable=false`, and flows through the existing category, artwork detail,
+Lightbox, `ArtworkUrlResolver`, and `/media` behavior.
 
 ## Build, test, and run
 
@@ -172,7 +209,7 @@ cd modernised/gallery
 
 Open [http://localhost:8080](http://localhost:8080). The root renders the restored splash home; Galleries links to `/categories` and Bio links to `/bio`.
 
-The latest local verification on `feature/admin-artwork-upload` passed:
+The baseline verification on `feature/admin-artwork-upload` passed:
 
 - 113 automated tests with no failures, errors, or skips;
 - the complete Gradle build, including Spotless, SpotBugs, JaCoCo, and packaging;
@@ -187,11 +224,11 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 
 - Virtual Exhibitions is displayed in the preserved navigation but is intentionally non-functional.
 - Recent Works is displayed on the category page but is intentionally non-functional.
-- `/admin` is currently an authenticated landing page only.
+- Administration beyond artwork upload is still under construction.
 
 ## Current boundaries
 
-- Artwork upload, curation, exhibition management, and related administration workflows are future slices.
+- Artwork edit/delete, category management, exhibition management, and other administration workflows are future slices.
 - The bundled catalog uses the five seeded categories and may create a missing category during import. Production taxonomy ownership will be addressed when content-management workflows are introduced.
 - `generalViewable` controls anonymous listings, counts, artwork details, navigation, APIs, and rendition delivery. `privilegeViewable` remains outside the current public-access model.
 - Authentication uses a persisted administrator identity with `ROLE_ADMIN`; broader identity and authorization requirements remain future work.

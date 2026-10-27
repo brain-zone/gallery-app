@@ -4,8 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
@@ -44,6 +49,67 @@ public class FileSystemArtworkStorage implements ArtworkStorage {
             new FileSystemResource(realCandidate),
             contentType(fileName.toString()),
             Files.size(realCandidate)));
+  }
+
+  @Override
+  public void writeDirectory(String directoryKey, Map<String, Path> sourceObjects)
+      throws IOException {
+    Path relativeDirectory = validate(directoryKey);
+    if (sourceObjects == null || sourceObjects.isEmpty()) {
+      throw new IllegalArgumentException("Artwork objects must not be empty");
+    }
+
+    Files.createDirectories(root);
+    Path targetDirectory = root.resolve(relativeDirectory).normalize();
+    Path targetParent = Objects.requireNonNull(targetDirectory.getParent());
+    Files.createDirectories(targetParent);
+    if (!targetParent.toRealPath().startsWith(root.toRealPath()) || Files.exists(targetDirectory)) {
+      throw new InvalidArtworkObjectKeyException("Artwork directory is unsafe or already exists");
+    }
+
+    Path staging =
+        Files.createTempDirectory(targetParent, ".upload-" + UUID.randomUUID().toString() + "-");
+    try {
+      for (Map.Entry<String, Path> object : sourceObjects.entrySet()) {
+        String fileName = object.getKey();
+        if (fileName == null
+            || fileName.isBlank()
+            || !Objects.requireNonNull(Path.of(fileName).getFileName())
+                .toString()
+                .equals(fileName)) {
+          throw new InvalidArtworkObjectKeyException("Artwork object name must be a file name");
+        }
+        Path source = Objects.requireNonNull(object.getValue()).toAbsolutePath().normalize();
+        if (!Files.isRegularFile(source)) {
+          throw new IOException("Artwork source object is unavailable");
+        }
+        Files.copy(source, staging.resolve(fileName), StandardCopyOption.COPY_ATTRIBUTES);
+      }
+      Files.move(staging, targetDirectory, StandardCopyOption.ATOMIC_MOVE);
+    } finally {
+      deleteRecursively(staging);
+    }
+  }
+
+  @Override
+  public void deleteDirectory(String directoryKey) throws IOException {
+    Path relativeDirectory = validate(directoryKey);
+    Path candidate = root.resolve(relativeDirectory).normalize();
+    if (!candidate.startsWith(root)) {
+      throw new InvalidArtworkObjectKeyException("Artwork directory escapes storage root");
+    }
+    deleteRecursively(candidate);
+  }
+
+  private void deleteRecursively(Path directory) throws IOException {
+    if (!Files.exists(directory)) {
+      return;
+    }
+    try (var paths = Files.walk(directory)) {
+      for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+        Files.deleteIfExists(path);
+      }
+    }
   }
 
   private Path validate(String objectKey) {

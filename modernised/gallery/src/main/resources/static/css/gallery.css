@@ -52,6 +52,31 @@ img {
     border: 0;
 }
 
+.artwork-upload-form {
+    display: grid;
+    grid-template-columns: 120px minmax(220px, 1fr);
+    gap: 10px;
+    align-items: start;
+}
+
+.artwork-upload-form input,
+.artwork-upload-form select,
+.artwork-upload-form textarea {
+    width: 100%;
+}
+
+.artwork-upload-form button,
+.form-errors,
+.field-error {
+    grid-column: 2;
+}
+
+.form-errors,
+.field-error {
+    margin: 0;
+    color: #8b1a1a;
+}
+
 .page-shell {
     position: relative;
     width: 100%;
@@ -705,6 +730,133 @@ img {
     font-size: 12px;
 }
 
+.admin-dashboard {
+    min-height: 0;
+    padding: 30px;
+}
+
+.admin-dashboard__header {
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.admin-box .admin-dashboard__header h1 {
+    margin: 2px 0 8px;
+    font-size: 24px;
+    font-weight: normal;
+    text-align: left;
+    text-shadow: none;
+}
+
+.admin-dashboard__header p {
+    margin: 0;
+}
+
+.admin-dashboard__eyebrow {
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.admin-dashboard__actions {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-dashboard-card {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    min-height: 76px;
+    padding: 14px 16px;
+    border: 1px solid #b4aa96;
+    background: #ebe7dc;
+    color: var(--color-text);
+    text-shadow: none;
+}
+
+.admin-dashboard-card--active:hover,
+.admin-dashboard-card--active:focus-visible {
+    border-color: var(--color-heading);
+    background: #f8f5ec;
+    color: var(--color-text);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+.admin-dashboard-card__icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-heading);
+    color: #fff;
+    font-size: 24px;
+}
+
+.admin-dashboard-card__content {
+    display: grid;
+    gap: 5px;
+    font-size: 12px;
+}
+
+.admin-dashboard-card__content strong {
+    color: var(--color-heading);
+    font-size: 16px;
+}
+
+.admin-dashboard-card__arrow {
+    color: var(--color-heading);
+    font-size: 28px;
+}
+
+.admin-dashboard-card--disabled {
+    opacity: .68;
+}
+
+.admin-dashboard-card--disabled .admin-dashboard-card__icon {
+    background: #918b7e;
+}
+
+.admin-dashboard-card__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-dashboard-card__badge {
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: #d7d0bf;
+    color: #5f5a50;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.admin-dashboard__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #c4bcaa;
+}
+
+.admin-dashboard__footer form {
+    margin: 0;
+}
+
+.admin-dashboard__footer button {
+    padding: 6px 14px;
+}
+
 .error-box {
     width: 518px;
     min-height: 214px;
@@ -741,6 +893,62 @@ img {
     text-align: center;
 }
 
+.account-navigation {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 4px;
+}
+
+.sidebar .account-navigation {
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+    padding: 14px 8px;
+}
+
+.account-navigation form,
+.admin-menu form {
+    margin: 0;
+}
+
+.account-navigation button,
+.admin-menu button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-accent);
+    font-size: 13px;
+    text-shadow: 1pt 1pt 3pt #000;
+}
+
+.account-navigation button:hover,
+.account-navigation button:focus-visible,
+.admin-menu button:hover,
+.admin-menu button:focus-visible {
+    color: #e3ded1;
+}
+
+.admin-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: center;
+    justify-content: center;
+    margin: 40px 0 0;
+}
+
+.admin-menu__unavailable {
+    color: #777;
+    cursor: not-allowed;
+}
+
+.admin-public-link {
+    margin-top: 24px;
+    text-align: center;
+}
+
 .admin-landing {
     padding-top: 48px;
 }
@@ -751,7 +959,7 @@ img {
 }
 
 .admin-under-construction {
-    margin: 42px 0 0;
+    margin: 28px 0 0;
     text-align: center;
 }
 

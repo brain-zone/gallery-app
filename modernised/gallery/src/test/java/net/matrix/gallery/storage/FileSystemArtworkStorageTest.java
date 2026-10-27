@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -65,6 +66,36 @@ class FileSystemArtworkStorageTest {
             () ->
                 new FileSystemArtworkStorage(temporaryDirectory.toString())
                     .read("artworks/images/link.png"))
+        .isInstanceOf(InvalidArtworkObjectKeyException.class);
+  }
+
+  @Test
+  void writesAndDeletesOneCompleteArtworkDirectory() throws Exception {
+    Path original = Files.write(temporaryDirectory.resolve("source.jpeg"), new byte[] {1, 2, 3});
+    Path gallery = Files.write(temporaryDirectory.resolve("gallery.jpeg"), new byte[] {4, 5});
+    FileSystemArtworkStorage storage = new FileSystemArtworkStorage(temporaryDirectory.toString());
+
+    storage.writeDirectory(
+        "artworks/images/identity", Map.of("original.jpeg", original, "gallery.jpeg", gallery));
+
+    assertThat(storage.read("artworks/images/identity/original.jpeg").orElseThrow().contentLength())
+        .isEqualTo(3);
+    assertThat(storage.read("artworks/images/identity/gallery.jpeg").orElseThrow().contentLength())
+        .isEqualTo(2);
+
+    storage.deleteDirectory("artworks/images/identity");
+    assertThat(temporaryDirectory.resolve("artworks/images/identity")).doesNotExist();
+  }
+
+  @Test
+  void refusesToOverwriteAnExistingArtworkDirectory() throws Exception {
+    Path source = Files.write(temporaryDirectory.resolve("source.png"), new byte[] {1});
+    FileSystemArtworkStorage storage = new FileSystemArtworkStorage(temporaryDirectory.toString());
+    storage.writeDirectory("artworks/images/identity", Map.of("original.png", source));
+
+    assertThatThrownBy(
+            () ->
+                storage.writeDirectory("artworks/images/identity", Map.of("original.png", source)))
         .isInstanceOf(InvalidArtworkObjectKeyException.class);
   }
 }

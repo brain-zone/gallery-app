@@ -1,5 +1,6 @@
 package net.matrix.gallery.web;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.storage.ArtworkStorage;
@@ -22,6 +23,9 @@ public class ArtworkMediaController {
   private final ArtworkStorage artworkStorage;
   private final ArtworkRepository artworkRepository;
 
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
+      justification = "Spring-managed collaborators are intentionally retained by this controller")
   public ArtworkMediaController(
       ArtworkStorage artworkStorage, ArtworkRepository artworkRepository) {
     this.artworkStorage = artworkStorage;

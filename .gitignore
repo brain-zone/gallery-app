@@ -9,4 +9,5 @@ settings.json
 .zip
 .gradle/
 **/build/
+modernised/gallery/gallery-data/
 **/HELP.md
