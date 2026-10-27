@@ -24,7 +24,7 @@ modern implementation and the final cutover is complete.
 | --- | --- |
 | Language | Java 21 toolchain |
 | Framework | Spring Boot 3.5.8, Spring Web MVC |
-| Views | Thymeleaf templates with shared navigation and preserved legacy visual identity |
+| Views | Thymeleaf templates with shared Home, Galleries, disabled Virtual Exhibitions and Bio navigation, current-page and keyboard-focus states, and preserved legacy visual identity |
 | Security | Spring Security form login and HTTP Basic |
 | Persistence | Spring Data JPA and transactional services |
 | Schema | Forward-only Flyway migrations V0–V6 |

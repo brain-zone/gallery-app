@@ -1,17 +1,27 @@
 <th:block xmlns:th="http://www.thymeleaf.org"
           xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-  <nav th:fragment="navigation" class="primary-nav" aria-label="Primary">
-    <a class="primary-nav__galleries" th:href="@{/categories}">
-      <span class="visually-hidden">Galleries</span>
-    </a>
-    <a class="primary-nav__exhibitions" href="#" aria-disabled="true">
-      <span class="visually-hidden">Virtual Exhibitions</span>
-    </a>
-    <a class="primary-nav__bio" th:href="@{/bio}">
-      <span class="visually-hidden">Bio</span>
-    </a>
-    <div th:replace="~{fragments/navigation :: accountNavigation}"></div>
-  </nav>
+  <th:block th:fragment="navigation(current, splash)">
+    <nav th:class="${splash} ? 'home-nav' : 'primary-nav'" aria-label="Primary">
+      <a class="public-nav__home" th:href="@{/}"
+         th:attr="aria-current=${current == 'home'} ? 'page' : null">Home</a>
+      <a class="home-nav__item home-nav__galleries primary-nav__galleries"
+         th:href="@{/categories}" th:attr="aria-current=${current == 'galleries'} ? 'page' : null">
+        <img th:if="${splash}" th:src="@{/images/ind_galleries.gif}" alt="Galleries">
+        <span th:unless="${splash}" class="visually-hidden">Galleries</span>
+      </a>
+      <span class="home-nav__item home-nav__exhibitions primary-nav__exhibitions"
+            role="link" aria-disabled="true" title="Virtual Exhibitions is not available yet">
+        <img th:if="${splash}" th:src="@{/images/ind_exhib.gif}" alt="Virtual Exhibitions">
+        <span th:unless="${splash}" class="visually-hidden">Virtual Exhibitions</span>
+      </span>
+      <a class="home-nav__item home-nav__bio primary-nav__bio"
+         th:href="@{/bio}" th:attr="aria-current=${current == 'bio'} ? 'page' : null">
+        <img th:if="${splash}" th:src="@{/images/ind_bio.gif}" alt="Bio">
+        <span th:unless="${splash}" class="visually-hidden">Bio</span>
+      </a>
+    </nav>
+    <nav th:replace="~{fragments/navigation :: accountNavigation}"></nav>
+  </th:block>
 
   <nav th:fragment="accountNavigation" class="account-navigation" aria-label="Account">
     <a sec:authorize="isAnonymous()" th:href="@{/login}">Administration Login</a>

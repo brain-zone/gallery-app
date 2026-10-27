@@ -20,18 +20,7 @@
         class="home-divider"
         th:src="@{/images/indexline.gif}"
         alt="">
-      <nav class="home-nav" aria-label="Primary">
-        <a class="home-nav__item home-nav__galleries" th:href="@{/categories}">
-          <img th:src="@{/images/ind_galleries.gif}" alt="Galleries">
-        </a>
-        <span class="home-nav__item home-nav__exhibitions" aria-disabled="true">
-          <img th:src="@{/images/ind_exhib.gif}" alt="Virtual Exhibitions">
-        </span>
-        <a class="home-nav__item home-nav__bio" th:href="@{/bio}">
-          <img th:src="@{/images/ind_bio.gif}" alt="Bio">
-        </a>
-      </nav>
-      <nav th:replace="~{fragments/navigation :: accountNavigation}"></nav>
+      <nav th:replace="~{fragments/navigation :: navigation('home', true)}"></nav>
     </main>
   </body>
 </html>

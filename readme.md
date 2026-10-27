@@ -59,7 +59,7 @@ The modernised application intentionally focuses on the browsing, catalog, visua
 - The demonstration catalog spans Abstract, Landscape, Portrait, Sculpture, Urban, and Wireframes. Production taxonomy ownership and migration remain outside this slice.
 - `generalViewable` controls public access; `privilegeViewable` does not grant a separate viewing entitlement. There is no administrator publication editor yet.
 - Authentication uses a persisted administrator and enforced `ROLE_ADMIN` access. Broader account lifecycle, production identity integration, and OAuth/OIDC remain future work.
-- Shared navigation still lacks a Home link and route-aware current-page state; fixed-width layout and image-based labels remain presentation gaps.
+- Fixed-width layout and image-based labels remain presentation gaps.
 
 ## Remaining roadmap
 

@@ -60,6 +60,87 @@ class PublicBrowsingIntegrationTest {
   }
 
   @Test
+  void sharedPublicNavigationMapsEveryHtmlRoute() throws Exception {
+    for (String path :
+        java.util.List.of(
+            "/",
+            "/categories",
+            "/categories/" + categoryId,
+            "/categories/" + categoryId + "/artworks/" + artworkId,
+            "/artworks/" + artworkId,
+            "/bio")) {
+      var response = htmlResponse(path);
+      assertThat(response.statusCode()).isEqualTo(200);
+      assertPublicNavigation(
+          response.body(), path.equals("/") ? "/" : path.equals("/bio") ? "/bio" : "/categories");
+    }
+    for (String path :
+        java.util.List.of("/categories/" + Long.MAX_VALUE, "/artworks/" + Long.MAX_VALUE)) {
+      var response = htmlResponse(path);
+      assertThat(response.statusCode()).isIn(401, 404);
+      assertPublicNavigation(response.body(), null);
+    }
+    var unauthorized = httpResponse("/actuator/health");
+    assertThat(unauthorized.statusCode()).isEqualTo(401);
+    assertPublicNavigation(unauthorized.body(), null);
+  }
+
+  @Test
+  void sharedNavigationPreservesAdministratorAccountActions() throws Exception {
+    for (String path : java.util.List.of("/", "/categories", "/bio")) {
+      var response =
+          mockMvc
+              .perform(
+                  get(path)
+                      .with(
+                          org.springframework.security.test.web.servlet.request
+                              .SecurityMockMvcRequestPostProcessors.user("admin")
+                              .roles("ADMIN")))
+              .andExpect(status().isOk())
+              .andReturn()
+              .getResponse();
+      var document = org.jsoup.Jsoup.parse(response.getContentAsString());
+      assertThat(document.select("nav[aria-label=Account] a[href=/admin]")).hasSize(1);
+      assertThat(document.select("nav[aria-label=Account] a[href=/login]")).isEmpty();
+      assertThat(
+              document.select(
+                  "nav[aria-label=Account] form[action=/logout][method=post] button[type=submit]"))
+          .hasSize(1);
+      assertThat(document.select("nav[aria-label=Account] form input[name=_csrf]")).hasSize(1);
+    }
+  }
+
+  private void assertPublicNavigation(String html, String currentHref) {
+    var document = org.jsoup.Jsoup.parse(html);
+    var navigation = document.select("nav[aria-label=Primary]");
+    assertThat(navigation).hasSize(1);
+    assertThat(navigation.select("a[href]").eachAttr("href"))
+        .containsExactly("/", "/categories", "/bio");
+    assertThat(
+            navigation.select("a").stream()
+                .map(
+                    link ->
+                        link.select("img").isEmpty()
+                            ? link.text()
+                            : link.select("img").attr("alt")))
+        .containsExactly("Home", "Galleries", "Bio");
+    var disabled = navigation.select("span[role=link][aria-disabled=true]");
+    assertThat(disabled).hasSize(1);
+    assertThat(disabled.text() + disabled.select("img").attr("alt"))
+        .isEqualTo("Virtual Exhibitions");
+    assertThat(disabled.select("[href], [tabindex], [onclick], [aria-current]")).isEmpty();
+    var current = document.select("[aria-current=page]");
+    if (currentHref == null) {
+      assertThat(current).isEmpty();
+    } else {
+      assertThat(current).hasSize(1);
+      assertThat(current.attr("href")).isEqualTo(currentHref);
+    }
+    assertThat(document.select("nav[aria-label=Account] a[href=/login]")).hasSize(1);
+    assertThat(document.select("nav[aria-label=Account] a[href=/admin]")).isEmpty();
+  }
+
+  @Test
   void anonymousVisitorCanOpenHomePage() throws Exception {
     mockMvc
         .perform(get("/").with(anonymous()))

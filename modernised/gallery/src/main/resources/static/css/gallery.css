@@ -109,24 +109,25 @@ img {
 .home-nav {
     display: flex;
     width: 574px;
-    height: 15px;
+    flex-wrap: wrap;
+    row-gap: 6px;
 }
 
-.home-nav__item {
+.home-nav .home-nav__item {
     display: block;
     flex: 0 0 auto;
     height: 15px;
 }
 
-.home-nav__galleries {
+.home-nav .home-nav__galleries {
     width: 206px;
 }
 
-.home-nav__exhibitions {
+.home-nav .home-nav__exhibitions {
     width: 215px;
 }
 
-.home-nav__bio {
+.home-nav .home-nav__bio {
     width: 153px;
 }
 
@@ -152,7 +153,8 @@ img {
     width: 165px;
 }
 
-.primary-nav a {
+.primary-nav > a,
+.primary-nav > [aria-disabled] {
     display: block;
     width: 165px;
     padding: 0;
@@ -160,34 +162,60 @@ img {
     background-repeat: no-repeat;
 }
 
-.primary-nav__galleries {
+.primary-nav .primary-nav__galleries {
     height: 31px;
     background-image: url("/images/int_galleries.gif");
 }
 
-.primary-nav__galleries:hover,
-.primary-nav__galleries:focus-visible {
+.primary-nav .primary-nav__galleries:hover,
+.primary-nav .primary-nav__galleries:focus-visible {
     background-image: url("/images/int_galleries_over.gif");
 }
 
-.primary-nav__exhibitions {
+.primary-nav .primary-nav__exhibitions {
     height: 32px;
     background-image: url("/images/int_exhib.gif");
 }
 
-.primary-nav__exhibitions:hover,
-.primary-nav__exhibitions:focus-visible {
-    background-image: url("/images/int_exhib_over.gif");
-}
-
-.primary-nav__bio {
+.primary-nav .primary-nav__bio {
     height: 24px;
     background-image: url("/images/int_bio.gif");
 }
 
-.primary-nav__bio:hover,
-.primary-nav__bio:focus-visible {
+.primary-nav .primary-nav__bio:hover,
+.primary-nav .primary-nav__bio:focus-visible {
     background-image: url("/images/int_bio_over.gif");
+}
+
+/* Shared public navigation states retain the original image labels. */
+.public-nav__home {
+    min-height: 28px;
+    line-height: 28px;
+}
+
+.home-nav .public-nav__home {
+    flex-basis: 100%;
+    text-align: center;
+}
+
+.primary-nav .public-nav__home {
+    padding-left: 16px;
+}
+
+.primary-nav > [aria-disabled],
+.home-nav > [aria-disabled] {
+    cursor: not-allowed;
+}
+
+.primary-nav > a[aria-current="page"],
+.home-nav > a[aria-current="page"] {
+    box-shadow: inset 0 -2px var(--color-accent);
+}
+
+.primary-nav > a:focus-visible,
+.home-nav > a:focus-visible {
+    outline: 2px solid var(--color-paper);
+    outline-offset: 2px;
 }
 
 .sidebar-image {

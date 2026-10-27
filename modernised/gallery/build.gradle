@@ -49,6 +49,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.jsoup:jsoup:1.18.3'
 	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.6'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

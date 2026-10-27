@@ -12,7 +12,7 @@
       <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
       <div class="page-body">
         <aside class="sidebar">
-          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <nav th:replace="~{fragments/navigation :: navigation('galleries', false)}"></nav>
           <img class="sidebar-image" th:src="@{/images/leftimage1.jpg}" alt="">
           <img class="sidebar-image" th:src="@{/images/leftimage2.jpg}" alt="">
           <img class="sidebar-image" th:src="@{/images/leftimage3.jpg}" alt="">
