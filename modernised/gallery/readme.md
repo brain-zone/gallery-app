@@ -75,10 +75,12 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 | `GET /` | Restored splash home | Anonymous |
 | `GET /categories` | Category list | Anonymous |
 | `GET /categories/{id}` | Category with curated artwork images | Anonymous |
+| `GET /categories/{categoryId}/artworks/{artworkId}` | Selected artwork within its category | Anonymous |
 | `GET /artworks/{id}` | Artwork image, artist, genre, metadata, categories, and renditions | Anonymous |
 | `GET /bio` | Portfolio Bio page | Anonymous |
 | `GET /login` | Custom Spring Security login page | Anonymous |
 | `POST /login` | Spring Security form authentication | Anonymous with CSRF token |
+| `POST /logout` | Invalidate the authenticated session | CSRF token required |
 | `GET /admin` | Administration landing page | `ROLE_ADMIN` only |
 | `GET /admin/artworks/upload` | Artwork-upload form | `ROLE_ADMIN` only |
 | `POST /admin/artworks/upload` | Generate renditions and publish artwork | `ROLE_ADMIN` and CSRF token |
@@ -87,7 +89,8 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 | `GET /api/artworks/{id}` | Artwork detail as JSON | Anonymous |
 | `GET /css/**` | Gallery stylesheet | Anonymous |
 | `GET /images/**` | Preserved shell and Bio image assets | Anonymous |
-| `GET`/`HEAD /media/**` | Externally stored artwork originals and renditions | Anonymous |
+| `GET /js/**` | Artwork dialog and rendition-selection scripts | Anonymous |
+| `GET`/`HEAD /media/**` | Externally stored artwork originals and renditions | Public artwork only; hidden/unregistered objects return 404 |
 
 ### Security behavior
 
@@ -229,7 +232,7 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 ## Current boundaries
 
 - Artwork edit/delete, category management, exhibition management, and other administration workflows are future slices.
-- The bundled catalog uses the five seeded categories and may create a missing category during import. Production taxonomy ownership will be addressed when content-management workflows are introduced.
+- The bundled catalog spans six categories (Abstract, Landscape, Portrait, Sculpture, Urban, and Wireframes) and may create a missing category during import. Production taxonomy ownership remains outside this slice.
 - `generalViewable` controls anonymous listings, counts, artwork details, navigation, APIs, and rendition delivery. `privilegeViewable` remains outside the current public-access model.
 - Authentication uses a persisted administrator identity with `ROLE_ADMIN`; broader identity and authorization requirements remain future work.
 - Catalog price data is validated but intentionally remains outside the current domain model.
@@ -237,7 +240,7 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 
 ## Future roadmap
 
-- artwork upload, curation, update/delete, and related administrator workflows;
+- curation, update/delete, category management, and related administrator workflows beyond the implemented upload;
 - exhibition creation and management;
 - visitor interest capture;
 - production authentication, with OAuth/OIDC still future work;
