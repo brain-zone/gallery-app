@@ -68,11 +68,13 @@ class PublicBrowsingIntegrationTest {
             "/categories/" + categoryId,
             "/categories/" + categoryId + "/artworks/" + artworkId,
             "/artworks/" + artworkId,
-            "/bio")) {
+            "/bio",
+            "/exhibitions")) {
       var response = htmlResponse(path);
       assertThat(response.statusCode()).isEqualTo(200);
       assertPublicNavigation(
-          response.body(), path.equals("/") ? null : path.equals("/bio") ? "/bio" : "/categories");
+          response.body(),
+          path.equals("/") ? null : path.equals("/bio") ? "/bio" : path.equals("/exhibitions") ? "/exhibitions" : "/categories");
     }
     for (String path :
         java.util.List.of("/categories/" + Long.MAX_VALUE, "/artworks/" + Long.MAX_VALUE)) {
@@ -87,7 +89,7 @@ class PublicBrowsingIntegrationTest {
 
   @Test
   void sharedNavigationPreservesAdministratorAccountActions() throws Exception {
-    for (String path : java.util.List.of("/", "/categories", "/bio")) {
+    for (String path : java.util.List.of("/", "/categories", "/bio", "/exhibitions")) {
       var response =
           mockMvc
               .perform(
@@ -117,13 +119,10 @@ class PublicBrowsingIntegrationTest {
     var navigation = document.select("nav[aria-label=Primary]");
     assertThat(navigation).hasSize(1);
     assertThat(navigation.select("a[href]").eachAttr("href"))
-        .containsExactly("/categories", "/bio");
-    assertThat(navigation.select("a").eachText()).containsExactly("Galleries", "Bio");
+        .containsExactly("/categories", "/exhibitions", "/bio");
+    assertThat(navigation.select("a").eachText()).containsExactly("Galleries", "Virtual Exhibitions", "Bio");
     assertThat(navigation.select("img")).isEmpty();
-    var disabled = navigation.select("span[role=link][aria-disabled=true]");
-    assertThat(disabled).hasSize(1);
-    assertThat(disabled.text()).isEqualTo("Virtual Exhibitions");
-    assertThat(disabled.select("[href], [tabindex], [onclick], [aria-current]")).isEmpty();
+    assertThat(navigation.select("[aria-disabled=true]")).isEmpty();
     var current = document.select("[aria-current=page]");
     if (currentHref == null) {
       assertThat(current).isEmpty();
@@ -150,6 +149,26 @@ class PublicBrowsingIntegrationTest {
                 .string(
                     org.hamcrest.Matchers.not(
                         org.hamcrest.Matchers.containsString("/virtualExhibitions"))));
+  }
+
+  @Test
+  void anonymousVisitorCanOpenVirtualExhibitionsFromLandingAndInternalNavigation() throws Exception {
+    for (String source : java.util.List.of("/", "/categories")) {
+      var sourceDocument = org.jsoup.Jsoup.parse(htmlResponse(source).body());
+      var link = sourceDocument.selectFirst("nav[aria-label=Primary] a[href=/exhibitions]");
+      assertThat(link).isNotNull();
+      assertThat(link.text()).isEqualTo("Virtual Exhibitions");
+      var destination = htmlResponse(link.attr("href"));
+      assertThat(destination.statusCode()).isEqualTo(200);
+      var page = org.jsoup.Jsoup.parse(destination.body());
+      assertThat(page.select("h1").text()).isEqualTo("Virtual Exhibitions");
+      assertThat(page.select("h2").text()).isEqualTo("Coming Soon");
+      assertThat(page.select(".category-box p").text())
+          .isEqualTo("We are preparing virtual exhibitions for you to explore.");
+      assertThat(page.select(".page-shell .site-logo, .page-shell .breadcrumb")).hasSize(2);
+      assertThat(page.select("nav[aria-label=Primary] a[href=/exhibitions][aria-current=page]"))
+          .hasSize(1);
+    }
   }
 
   @Test

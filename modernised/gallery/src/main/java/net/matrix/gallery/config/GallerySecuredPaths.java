@@ -5,6 +5,7 @@ public class GallerySecuredPaths {
     "/",
     "/login",
     "/bio",
+    "/exhibitions",
     "/categories",
     "/categories/**",
     "/artworks/**",

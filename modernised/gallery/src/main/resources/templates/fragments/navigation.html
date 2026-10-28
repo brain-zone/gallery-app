@@ -11,10 +11,8 @@
     <nav th:class="${splash} ? 'home-nav' : 'primary-nav'" aria-label="Primary">
       <a class="public-nav__item public-nav__galleries" th:href="@{/categories}"
          th:attr="aria-current=${current == 'galleries'} ? 'page' : null">Galleries</a>
-      <span class="public-nav__item public-nav__exhibitions"
-            role="link" aria-disabled="true" title="Virtual Exhibitions is not available yet">
-        Virtual Exhibitions
-      </span>
+      <a class="public-nav__item public-nav__exhibitions" th:href="@{/exhibitions}"
+         th:attr="aria-current=${current == 'exhibitions'} ? 'page' : null">Virtual Exhibitions</a>
       <a class="public-nav__item public-nav__bio" th:href="@{/bio}"
          th:attr="aria-current=${current == 'bio'} ? 'page' : null">Bio</a>
     </nav>
