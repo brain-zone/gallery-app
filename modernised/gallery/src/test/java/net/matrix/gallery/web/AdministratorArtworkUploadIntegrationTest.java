@@ -81,9 +81,8 @@ class AdministratorArtworkUploadIntegrationTest {
     mockMvc
         .perform(get("/admin/artworks/upload").with(user("admin").roles("ADMIN")))
         .andExpect(status().isOk())
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Create an Exhibition")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Upload Artwork")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Log Out")));
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Logout")));
     mockMvc
         .perform(
             multipart("/admin/artworks/upload")

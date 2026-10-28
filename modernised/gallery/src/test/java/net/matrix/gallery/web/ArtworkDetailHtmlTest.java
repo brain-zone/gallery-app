@@ -89,10 +89,11 @@ class ArtworkDetailHtmlTest {
     assertThat(associatedHtml)
         .contains("href=\"/categories/5/artworks/11\"", ">Urban</a>")
         .contains("href=\"/categories/8/artworks/11\"", ">Contemporary</a>")
-        .contains("href=\"/categories\">Galleries:</a>")
-        .doesNotContain("href=\"/categories/5\"", "href=\"/categories/8\"");
+        .contains("href=\"/categories\">Galleries</a>")
+        .contains("href=\"/categories/5\">Urban</a>")
+        .doesNotContain("href=\"/categories/8\"");
     assertThat(unassociatedHtml)
-        .contains("href=\"/categories\">Galleries:</a>", ">Artwork</span>")
+        .contains("href=\"/categories\">Galleries</a>", ">Shattered Reflection</span>")
         .doesNotContain("class=\"gallery-category-links\"");
   }
 

@@ -72,7 +72,7 @@ class PublicBrowsingIntegrationTest {
       var response = htmlResponse(path);
       assertThat(response.statusCode()).isEqualTo(200);
       assertPublicNavigation(
-          response.body(), path.equals("/") ? "/" : path.equals("/bio") ? "/bio" : "/categories");
+          response.body(), path.equals("/") ? null : path.equals("/bio") ? "/bio" : "/categories");
     }
     for (String path :
         java.util.List.of("/categories/" + Long.MAX_VALUE, "/artworks/" + Long.MAX_VALUE)) {
@@ -112,11 +112,13 @@ class PublicBrowsingIntegrationTest {
 
   private void assertPublicNavigation(String html, String currentHref) {
     var document = org.jsoup.Jsoup.parse(html);
+    var count = document.select("link[rel=stylesheet][href='/css/gallery.css?v=account-row-2']");
+    assertThat(count).hasSize(1);
     var navigation = document.select("nav[aria-label=Primary]");
     assertThat(navigation).hasSize(1);
     assertThat(navigation.select("a[href]").eachAttr("href"))
-        .containsExactly("/", "/categories", "/bio");
-    assertThat(navigation.select("a").eachText()).containsExactly("Home", "Galleries", "Bio");
+        .containsExactly("/categories", "/bio");
+    assertThat(navigation.select("a").eachText()).containsExactly("Galleries", "Bio");
     assertThat(navigation.select("img")).isEmpty();
     var disabled = navigation.select("span[role=link][aria-disabled=true]");
     assertThat(disabled).hasSize(1);

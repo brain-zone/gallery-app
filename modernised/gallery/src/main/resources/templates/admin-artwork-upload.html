@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Upload Artwork | Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css(v='gal005-text-navigation-2')}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
   </head>
   <body>
     <div class="page-shell admin-shell">
-      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
       <main class="admin-content">
-        <div class="breadcrumb"><a th:href="@{/admin}">Administration Tool</a> &gt; Upload Artwork</div>
+        <div class="breadcrumb"><a th:href="@{/admin}">Administration</a> › Upload Artwork</div>
         <section class="admin-box" aria-labelledby="upload-heading">
           <h1 id="upload-heading">Upload Artwork</h1>
-          <nav th:replace="~{fragments/navigation :: adminNavigation}"></nav>
           <p>JPEG or PNG, up to 10 MB. The artwork is published immediately.</p>
           <form class="artwork-upload-form" th:action="@{/admin/artworks/upload}" th:object="${artworkUploadForm}" method="post" enctype="multipart/form-data">
             <div class="form-errors" role="alert" th:if="${#fields.hasGlobalErrors()}">

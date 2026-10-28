@@ -18,7 +18,7 @@ html {
 body {
     min-height: 100vh;
     margin: 0;
-    background: var(--color-background) url("/images/background.jpg") top left no-repeat;
+    background: radial-gradient(ellipse 780px 500px at top left, #a7adb5 0%, var(--color-background) 100%);
     color: var(--color-text);
     font: 12px Arial, Helvetica, sans-serif;
 }
@@ -27,12 +27,12 @@ a {
     color: var(--color-accent);
     font-size: 13px;
     text-decoration: none;
-    text-shadow: 1pt 1pt 3pt #000;
+    text-shadow: none;
 }
 
 a:hover,
 a:focus-visible {
-    color: #e3ded1;
+    color: #fff;
 }
 
 img {
@@ -78,10 +78,11 @@ img {
 }
 
 .page-shell {
-    position: relative;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 788px;
     min-height: 500px;
-    margin-bottom: 10px;
+    margin: 0 auto 10px;
 }
 
 .home-shell {
@@ -108,28 +109,31 @@ img {
 
 .home-nav {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     width: 574px;
-    border-top: 1px solid var(--color-accent);
-    border-bottom: 1px solid var(--color-accent);
 }
 
 .site-header {
-    width: 527px;
-    height: 68px;
-    background: url("/images/intheader.jpg") top left no-repeat;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.site-logo {
+    width: 425px;
+    height: auto;
 }
 
 .page-body {
     display: flex;
-    flex-wrap: wrap;
     align-items: flex-start;
 }
 
 .sidebar {
     flex: 0 0 165px;
     width: 165px;
-    margin-top: 26px;
+    margin-top: 18px;
 }
 
 .primary-nav {
@@ -146,19 +150,19 @@ img {
     text-align: center;
     text-shadow: none;
     text-transform: uppercase;
-    transition: background-color 120ms ease, color 120ms ease;
+    transition: color 120ms ease;
 }
 
 .home-nav .public-nav__item {
     min-width: 0;
     padding: 8px 4px;
+    white-space: nowrap;
 }
 
 .primary-nav .public-nav__item {
     width: 165px;
-    padding: 9px 10px;
-    border-bottom: 1px solid rgb(188 147 92 / 45%);
-    background-color: rgb(73 87 104 / 78%);
+    padding: 9px 0;
+    white-space: nowrap;
 }
 
 .public-nav__item[aria-disabled="true"] {
@@ -168,19 +172,20 @@ img {
 
 .public-nav__item:is(a):hover,
 .public-nav__item:is(a):focus-visible {
-    background-color: rgb(96 110 126 / 92%);
-    color: var(--color-paper);
+    color: #fff;
 }
 
 .public-nav__item[aria-current="page"] {
-    background-color: rgb(73 87 104 / 92%);
-    box-shadow: inset 0 -2px var(--color-accent);
-    color: var(--color-paper);
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
 }
 
 .public-nav__item:is(a):focus-visible {
     outline: 2px solid var(--color-paper);
-    outline-offset: -2px;
+    outline-offset: 2px;
 }
 
 .sidebar-image {
@@ -208,7 +213,7 @@ img {
     color: var(--color-accent);
     font-size: 13px;
     text-align: right;
-    text-shadow: 1pt 1pt 3pt #000;
+    text-shadow: none;
 }
 
 .breadcrumb a {
@@ -702,16 +707,10 @@ img {
     color: var(--color-heading);
 }
 
-.admin-shell {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    width: 100%;
-}
-
 .admin-content {
     flex: 0 0 620px;
     width: 620px;
+    margin: 0 auto;
 }
 
 .admin-box {
@@ -888,60 +887,45 @@ img {
 
 .account-navigation {
     display: flex;
+    order: -1;
     gap: 12px;
     align-items: center;
-    justify-content: center;
-    padding: 12px 4px;
+    justify-content: flex-end;
+    min-height: 24px;
+    padding: 0 2px;
+    white-space: nowrap;
 }
 
-.account-navigation a,
-.admin-public-link a,
-.admin-dashboard__footer a {
-    text-shadow: none;
+.home-shell > .account-navigation {
+    width: 100%;
 }
 
-.sidebar .account-navigation {
-    flex-direction: column;
-    gap: 5px;
-    align-items: flex-start;
-    padding: 14px 8px;
-}
-
-.sidebar .account-navigation a,
-.sidebar .account-navigation button {
-    width: 149px;
-    padding: 7px 8px;
-    background-color: rgb(73 87 104 / 78%);
-    text-align: left;
-}
-
-.sidebar .account-navigation a:hover,
-.sidebar .account-navigation a:focus-visible,
-.sidebar .account-navigation button:hover,
-.sidebar .account-navigation button:focus-visible {
-    background-color: rgb(96 110 126 / 92%);
-}
-
-.account-navigation form,
-.admin-menu form {
+.account-navigation form {
     margin: 0;
 }
 
-.account-navigation button,
-.admin-menu button {
+.account-navigation a,
+.account-navigation button {
     padding: 0;
     border: 0;
     background: transparent;
     color: var(--color-accent);
-    font-size: 13px;
-    text-shadow: 1pt 1pt 3pt #000;
+    font: 13px Arial, Helvetica, sans-serif;
+    text-shadow: none;
 }
 
+.account-navigation a:hover,
+.account-navigation a:focus-visible,
 .account-navigation button:hover,
-.account-navigation button:focus-visible,
-.admin-menu button:hover,
-.admin-menu button:focus-visible {
-    color: #e3ded1;
+.account-navigation button:focus-visible {
+    background: transparent;
+    color: #fff;
+}
+
+.account-navigation a:focus-visible,
+.account-navigation button:focus-visible {
+    outline: 2px solid var(--color-paper);
+    outline-offset: 2px;
 }
 
 .admin-menu {
@@ -951,6 +935,14 @@ img {
     align-items: center;
     justify-content: center;
     margin: 40px 0 0;
+}
+
+.admin-menu a,
+.admin-menu button,
+.admin-menu__unavailable {
+    padding: 8px 10px;
+    font-weight: bold;
+    text-shadow: none;
 }
 
 .admin-menu__unavailable {
@@ -993,7 +985,7 @@ img {
 .form-row label {
     color: var(--color-heading);
     text-align: right;
-    text-shadow: 2pt 2pt 2pt #9f7e53;
+    text-shadow: none;
 }
 
 .form-row input {
@@ -1042,14 +1034,13 @@ button:focus-visible {
 
 .bio-box {
     width: 518px;
-    min-height: 500px;
     margin: 0 0 4px 40px;
-    padding: 10px;
+    padding: 20px 22px 24px;
     border: 1px solid var(--color-accent);
     background: var(--color-paper);
     color: var(--color-text);
-    font-size: 12px;
-    line-height: 1.25;
+    font-size: 14px;
+    line-height: 1.55;
 }
 
 .bio-box::after {
@@ -1059,14 +1050,14 @@ button:focus-visible {
 }
 
 .bio-box p {
-    margin: 8px 0 18px;
+    margin: 0 0 16px;
 }
 
 .bio-picture {
     float: right;
     width: 150px;
     height: 150px;
-    margin: 0 0 10px 12px;
+    margin: 2px 0 16px 20px;
     border: 2px solid var(--color-accent);
     border-radius: 50%;
     background: #fff;
@@ -1074,17 +1065,23 @@ button:focus-visible {
 }
 
 .bio-contact {
-    margin-top: 20px;
+    clear: both;
+    margin-top: 26px;
+    line-height: 1.7;
 }
 
 .bio-contact__title {
+    display: block;
+    margin-bottom: 8px;
     color: var(--color-heading);
     font-size: 14px;
     font-weight: normal;
 }
 
 .bio-contact a {
+    display: block;
+    width: fit-content;
     color: var(--color-heading);
-    font-size: 12px;
+    font-size: 14px;
     text-shadow: none;
 }

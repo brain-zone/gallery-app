@@ -51,7 +51,7 @@ class AdminAuthenticationIntegrationTest {
     mockMvc
         .perform(get("/login").with(anonymous()))
         .andExpect(status().isOk())
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration Tool")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("login-form")));
   }
 
@@ -69,13 +69,16 @@ class AdminAuthenticationIntegrationTest {
         .perform(
             get("/admin").session((MockHttpSession) loginResult.getRequest().getSession(false)))
         .andExpect(status().isOk())
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration Tool")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration")))
+        .andExpect(
+            content()
+                .string(org.hamcrest.Matchers.containsString("/css/gallery.css?v=account-row-2")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Gallery management")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Create an Exhibition")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Upload Artwork")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString(">Home</a>")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Log Out")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Logout")))
         .andExpect(
             content()
                 .string(
@@ -142,22 +145,20 @@ class AdminAuthenticationIntegrationTest {
     mockMvc
         .perform(get("/categories").with(anonymous()))
         .andExpect(status().isOk())
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration Login")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Login")))
         .andExpect(
             content()
-                .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Log Out"))))
+                .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Logout"))))
         .andExpect(unauthenticated());
 
     mockMvc
         .perform(get("/categories").with(user("admin").roles("ADMIN")))
         .andExpect(status().isOk())
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Administration")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Log Out")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Logout")))
         .andExpect(
             content()
-                .string(
-                    org.hamcrest.Matchers.not(
-                        org.hamcrest.Matchers.containsString("Administration Login"))))
+                .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Login"))))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("action=\"/logout\"")));
 
     mockMvc

@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" th:href="@{/css/gallery.css(v='gal005-text-navigation-2')}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
     <title>Barbara Israel Fine Arts - Anand's profile</title>
 </head>
 <body>
 <main class="page-shell">
-    <header class="site-header"></header>
+    <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+    <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
 
     <div class="page-body">
         <aside class="sidebar">
@@ -36,8 +37,8 @@
                 <p>This repository is therefore less about the gallery itself and more about demonstrating a practical approach to legacy modernisation: understand the existing system, establish a baseline, replace one vertical slice at a time, verify parity, and only then retire the old implementation.</p>
 
                 <div class="bio-contact">
-                    <span class="bio-contact__title">Contact Anand:</span><br><br>
-                    <a href="https://linkedin.com/in/anandhemadri">LinkedIn</a><br>
+                    <span class="bio-contact__title">Contact Anand:</span>
+                    <a href="https://linkedin.com/in/anandhemadri">LinkedIn</a>
                     <a href="https://brainzone.co.in">BrainZone Consulting</a>
                 </div>
             </div>

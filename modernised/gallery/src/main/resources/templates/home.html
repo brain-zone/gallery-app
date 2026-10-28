@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css(v='gal005-text-navigation-2')}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
   </head>
   <body>
     <main class="home-shell">
-      <img
-        class="home-logo"
-        th:src="@{/images/indexlogo.gif}"
-        alt="Barbara Israel Fine Arts">
+      <nav th:replace="~{fragments/navigation :: accountNavigation(true)}"></nav>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
       <img
         class="home-artwork"
         th:src="@{/images/indeximage.jpg}"

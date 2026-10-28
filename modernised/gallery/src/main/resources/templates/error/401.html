@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Authentication required · Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css(v='gal005-text-navigation-2')}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
   </head>
   <body>
     <div class="page-shell">
-      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
       <div class="page-body">
         <aside class="sidebar">
           <nav th:replace="~{fragments/navigation :: navigation('', false)}"></nav>

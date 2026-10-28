@@ -1,9 +1,14 @@
 <th:block xmlns:th="http://www.thymeleaf.org"
           xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+  <link th:fragment="stylesheet" rel="stylesheet"
+        th:href="@{/css/gallery.css(v='account-row-2')}">
+
+  <header th:fragment="siteHeader" class="site-header">
+    <img class="site-logo" th:src="@{/images/indexlogo.gif}" alt="Barbara Israel Fine Arts">
+  </header>
+
   <th:block th:fragment="navigation(current, splash)">
     <nav th:class="${splash} ? 'home-nav' : 'primary-nav'" aria-label="Primary">
-      <a class="public-nav__item public-nav__home" th:href="@{/}"
-         th:attr="aria-current=${current == 'home'} ? 'page' : null">Home</a>
       <a class="public-nav__item public-nav__galleries" th:href="@{/categories}"
          th:attr="aria-current=${current == 'galleries'} ? 'page' : null">Galleries</a>
       <span class="public-nav__item public-nav__exhibitions"
@@ -13,24 +18,14 @@
       <a class="public-nav__item public-nav__bio" th:href="@{/bio}"
          th:attr="aria-current=${current == 'bio'} ? 'page' : null">Bio</a>
     </nav>
-    <nav th:replace="~{fragments/navigation :: accountNavigation}"></nav>
   </th:block>
 
-  <nav th:fragment="accountNavigation" class="account-navigation" aria-label="Account">
-    <a sec:authorize="isAnonymous()" th:href="@{/login}">Administration Login</a>
+  <nav th:fragment="accountNavigation(splash)" class="account-navigation" aria-label="Account">
+    <a th:unless="${splash}" th:href="@{/}">Home</a>
+    <a sec:authorize="isAnonymous()" th:href="@{/login}">Login</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Administration</a>
     <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
-      <button type="submit">Log Out</button>
-    </form>
-  </nav>
-
-  <nav th:fragment="adminNavigation" class="admin-menu" aria-label="Administration">
-    <span class="admin-menu__unavailable"
-          aria-disabled="true"
-          title="Exhibition management is not implemented yet">Create an Exhibition</span>
-    <a th:href="@{/admin/artworks/upload}">Upload Artwork</a>
-    <form th:action="@{/logout}" method="post">
-      <button type="submit">Log Out</button>
+      <button type="submit">Logout</button>
     </form>
   </nav>
 </th:block>
