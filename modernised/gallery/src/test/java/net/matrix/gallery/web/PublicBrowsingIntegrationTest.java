@@ -74,7 +74,11 @@ class PublicBrowsingIntegrationTest {
       assertThat(response.statusCode()).isEqualTo(200);
       assertPublicNavigation(
           response.body(),
-          path.equals("/") ? null : path.equals("/bio") ? "/bio" : path.equals("/exhibitions") ? "/exhibitions" : "/categories");
+          path.equals("/")
+              ? null
+              : path.equals("/bio")
+                  ? "/bio"
+                  : path.equals("/exhibitions") ? "/exhibitions" : "/categories");
     }
     for (String path :
         java.util.List.of("/categories/" + Long.MAX_VALUE, "/artworks/" + Long.MAX_VALUE)) {
@@ -120,7 +124,8 @@ class PublicBrowsingIntegrationTest {
     assertThat(navigation).hasSize(1);
     assertThat(navigation.select("a[href]").eachAttr("href"))
         .containsExactly("/categories", "/exhibitions", "/bio");
-    assertThat(navigation.select("a").eachText()).containsExactly("Galleries", "Virtual Exhibitions", "Bio");
+    assertThat(navigation.select("a").eachText())
+        .containsExactly("Galleries", "Virtual Exhibitions", "Bio");
     assertThat(navigation.select("img")).isEmpty();
     assertThat(navigation.select("[aria-disabled=true]")).isEmpty();
     var current = document.select("[aria-current=page]");
@@ -152,7 +157,8 @@ class PublicBrowsingIntegrationTest {
   }
 
   @Test
-  void anonymousVisitorCanOpenVirtualExhibitionsFromLandingAndInternalNavigation() throws Exception {
+  void anonymousVisitorCanOpenVirtualExhibitionsFromLandingAndInternalNavigation()
+      throws Exception {
     for (String source : java.util.List.of("/", "/categories")) {
       var sourceDocument = org.jsoup.Jsoup.parse(htmlResponse(source).body());
       var link = sourceDocument.selectFirst("nav[aria-label=Primary] a[href=/exhibitions]");
