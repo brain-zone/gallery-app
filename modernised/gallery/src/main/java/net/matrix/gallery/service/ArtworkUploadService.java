@@ -1,7 +1,6 @@
 package net.matrix.gallery.service;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -15,6 +14,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import net.matrix.gallery.domain.model.ArtEntity;
 import net.matrix.gallery.domain.model.Category;
 import net.matrix.gallery.domain.value.ImageRendition;
@@ -31,6 +32,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /** Validates, renders, stores, and persists one immediately public artwork. */
 @Service
 public class ArtworkUploadService {
+
+  /** Caps one decoded source at about 48 MB for four-byte pixels, before decoder overhead. */
+  private static final long MAXIMUM_DECODED_PIXELS = 12_000_000L;
 
   private final ArtworkRepository artworkRepository;
   private final CategoryRepository categoryRepository;
@@ -69,10 +73,7 @@ public class ArtworkUploadService {
       temporaryDirectory = Files.createTempDirectory("gallery-artwork-upload-");
       Path original = temporaryDirectory.resolve("original." + extension);
       form.getImage().transferTo(original);
-      BufferedImage source = ImageIO.read(original.toFile());
-      if (source == null || source.getWidth() < 1 || source.getHeight() < 1) {
-        throw new ArtworkUploadException("Select a valid JPEG or PNG image.");
-      }
+      int[] dimensions = inspectDimensions(original);
 
       var generated = ArtworkRenditionGenerator.generate(original);
       Path gallery = generated.get(0).path();
@@ -88,7 +89,7 @@ public class ArtworkUploadService {
       Map<RenditionType, ImageRendition> renditions = new EnumMap<>(RenditionType.class);
       renditions.put(
           RenditionType.ORIGINAL,
-          metadata(directoryKey, original, contentType, source.getWidth(), source.getHeight()));
+          metadata(directoryKey, original, contentType, dimensions[0], dimensions[1]));
       renditions.put(
           RenditionType.GALLERY,
           metadata(
@@ -108,7 +109,7 @@ public class ArtworkUploadService {
 
       Long savedId =
           transactionTemplate.execute(
-              status -> persist(form, identity, source.getWidth(), source.getHeight(), renditions));
+              status -> persist(form, identity, dimensions[0], dimensions[1], renditions));
       if (savedId == null) {
         throw new ArtworkUploadException("Artwork metadata could not be saved.");
       }
@@ -128,6 +129,33 @@ public class ArtworkUploadService {
       throw uploadException;
     } finally {
       deleteTemporaryDirectory(temporaryDirectory);
+    }
+  }
+
+  private int[] inspectDimensions(Path original) throws IOException {
+    try (ImageInputStream input = ImageIO.createImageInputStream(original.toFile())) {
+      if (input == null) {
+        throw new ArtworkUploadException("Select a valid JPEG or PNG image.");
+      }
+      var readers = ImageIO.getImageReaders(input);
+      if (!readers.hasNext()) {
+        throw new ArtworkUploadException("Select a valid JPEG or PNG image.");
+      }
+      ImageReader reader = readers.next();
+      try {
+        reader.setInput(input, true, true);
+        int width = reader.getWidth(0);
+        int height = reader.getHeight(0);
+        if (width < 1 || height < 1) {
+          throw new ArtworkUploadException("Select a valid JPEG or PNG image.");
+        }
+        if ((long) width * height > MAXIMUM_DECODED_PIXELS) {
+          throw new ArtworkUploadException("The image exceeds the 12 million pixel limit.");
+        }
+        return new int[] {width, height};
+      } finally {
+        reader.dispose();
+      }
     }
   }
 

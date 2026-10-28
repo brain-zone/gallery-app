@@ -201,6 +201,42 @@ class AdministratorArtworkUploadIntegrationTest {
     assertThat(artworkRepository.count()).isEqualTo(before);
   }
 
+  @Test
+  @Order(5)
+  void compressedImageOverPixelBudgetLeavesNoArtworkOrMedia() throws Exception {
+    long artworkCount = artworkRepository.count();
+    Path images = STORAGE_ROOT.resolve("artworks/images");
+    long directoryCount;
+    try (var entries = Files.list(images)) {
+      directoryCount = entries.filter(Files::isDirectory).count();
+    }
+
+    BufferedImage largeImage = new BufferedImage(4000, 4000, BufferedImage.TYPE_INT_RGB);
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    assertThat(ImageIO.write(largeImage, "png", output)).isTrue();
+    assertThat(output.size()).isLessThan(10 * 1024 * 1024);
+    MockMultipartFile compressed =
+        new MockMultipartFile("image", "compressed.png", "image/png", output.toByteArray());
+
+    mockMvc
+        .perform(
+            multipart("/admin/artworks/upload")
+                .file(compressed)
+                .param("title", "Too Many Pixels")
+                .param("categoryId", firstCategoryId())
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("admin-artwork-upload"))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("12 million pixel limit")));
+
+    assertThat(artworkRepository.count()).isEqualTo(artworkCount);
+    try (var entries = Files.list(images)) {
+      assertThat(entries.filter(Files::isDirectory).count()).isEqualTo(directoryCount);
+    }
+  }
+
   private String firstCategoryId() {
     return categoryRepository.findAll().stream()
         .min(Comparator.comparing(category -> category.getCategoryName()))
