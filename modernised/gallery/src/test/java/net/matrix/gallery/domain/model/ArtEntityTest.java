@@ -20,6 +20,11 @@ import org.junit.jupiter.api.Test;
 class ArtEntityTest {
 
   @Test
+  void newlyCreatedArtworkIsPublicByDefault() {
+    assertTrue(new ArtEntity().isGeneralViewable());
+  }
+
+  @Test
   void normalizesCatalogKeyForStableDatabaseIdentity() {
     ArtEntity artwork = new ArtEntity();
 
@@ -143,8 +148,7 @@ class ArtEntityTest {
   void viewableFlagsReflectState() {
     ArtEntity art = new ArtEntity();
 
-    // defaults should be false
-    assertFalse(art.isGeneralViewable());
+    assertTrue(art.isGeneralViewable());
     assertFalse(art.isPrivilegeViewable());
 
     art.setGeneralViewable(true);

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
+    <title>Barbara Israel Fine Arts - Virtual Exhibitions</title>
+</head>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+    <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
+    <div class="page-body">
+        <aside class="sidebar">
+            <nav th:replace="~{fragments/navigation :: navigation('exhibitions', false)}"></nav>
+        </aside>
+        <div class="content-divider" aria-hidden="true"></div>
+        <main class="main-content">
+            <div class="breadcrumb">Virtual Exhibitions</div>
+            <section class="category-box" aria-labelledby="exhibitions-heading">
+                <h1 id="exhibitions-heading">Virtual Exhibitions</h1>
+                <h2>Coming Soon</h2>
+                <p>We are preparing virtual exhibitions for you to explore.</p>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>

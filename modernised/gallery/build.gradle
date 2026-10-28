@@ -35,7 +35,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-database-postgresql'
@@ -47,6 +49,8 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.jsoup:jsoup:1.18.3'
+	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.6'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -79,5 +83,20 @@ tasks.withType(SpotBugsTask).configureEach {
 	reports {
 		html.required = true
 		xml.required = false
+	}
+}
+
+tasks.register('provisionArtworkMedia', Sync) {
+	group = 'application'
+	description = 'Copies the curated artwork objects to an external filesystem storage root.'
+	def requestedRoot = providers.gradleProperty('artworkStorageRoot')
+	onlyIf { requestedRoot.isPresent() }
+	from layout.projectDirectory.dir('artwork-media')
+	into requestedRoot.map { layout.projectDirectory.dir(it) }
+	doFirst {
+		if (layout.projectDirectory.dir('artwork-media').asFile.canonicalFile ==
+				requestedRoot.map { layout.projectDirectory.dir(it).asFile.canonicalFile }.get()) {
+			throw new GradleException('Choose an artworkStorageRoot outside the tracked artwork-media source directory.')
+		}
 	}
 }

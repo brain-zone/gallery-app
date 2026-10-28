@@ -1,6 +1,21 @@
 # Gallery Application — Modernised
 
-This module is the actively developed Spring Boot implementation of the Gallery Application. It modernises verified legacy behaviour in small, tested vertical slices rather than claiming a complete feature-for-feature port.
+This module is the actively developed Spring Boot implementation of the Gallery Application. It
+modernises verified legacy behaviour in small, tested vertical slices rather than claiming a
+complete feature-for-feature port.
+
+## Modernisation approach
+
+The repository retains both implementations:
+
+- `legacy/gallery` is the historical application and the evidence source for existing behaviour;
+- `modernised/gallery` is the replacement Spring Boot application, built and accepted one vertical
+  slice at a time.
+
+Modernisation is delivered through incremental, tested vertical slices. Each slice is verified
+against the relevant legacy behaviour before it is accepted as the modern replacement. The legacy
+module remains available as the behavioural reference until every required capability has a verified
+modern implementation and the final cutover is complete.
 
 
 ## Current stack
@@ -9,11 +24,11 @@ This module is the actively developed Spring Boot implementation of the Gallery 
 | --- | --- |
 | Language | Java 21 toolchain |
 | Framework | Spring Boot 3.5.8, Spring Web MVC |
-| Views | Thymeleaf templates with shared navigation and preserved legacy visual identity |
+| Views | Thymeleaf templates with shared Home, Galleries, disabled Virtual Exhibitions and Bio navigation, current-page and keyboard-focus states, and preserved legacy visual identity |
 | Security | Spring Security form login and HTTP Basic |
 | Persistence | Spring Data JPA and transactional services |
-| Schema | Forward-only Flyway migrations V0–V4 |
-| Database | H2 for verified local/runtime tests; PostgreSQL driver and Flyway support included but not production-proven |
+| Schema | Forward-only Flyway migrations V0–V6 |
+| Database | File-backed H2 for normal local runs; isolated in-memory H2 for automated tests |
 | Build and quality | Gradle, JUnit 5, Spring tests, JaCoCo, Spotless, and SpotBugs |
 
 ## Implemented and verified
@@ -28,17 +43,17 @@ This module is the actively developed Spring Boot implementation of the Gallery 
 
 ### Curated catalog bootstrap
 
-At application startup, `ArtworkCatalogStartup` invokes the transactional `ArtworkCatalogImporter` against `static/artworks/artworks.json`.
+At application startup, `ArtworkCatalogStartup` invokes the transactional `ArtworkCatalogImporter` against the bundled metadata file `static/artworks/artworks.json`. Artwork bytes are read through `ArtworkStorage` from external filesystem storage; they are not application resources.
 
 The importer:
 
 - validates all catalog records and referenced images before writing;
-- imports 10 artworks across Abstract, Landscape, Portrait, Sculpture, and Urban;
+- imports 14 artworks across Abstract, Landscape, Portrait, Sculpture, Urban, and Wireframes;
 - reuses category names with case-insensitive exact matching and creates only missing categories;
 - uses the source `logicalFileName`, normalized to lower case, as `ArtEntity.catalogKey`;
 - relies on the nullable unique `catalog_key` index introduced by Flyway V4;
 - updates an existing catalog record on repeat startup rather than creating a duplicate;
-- synchronizes one category and one `GALLERY` rendition per curated record;
+- synchronizes one category and the `ORIGINAL`, `GALLERY`, and `THUMBNAIL` renditions per curated record;
 - derives image content type, byte size, dimensions, and SHA-256 checksum;
 - persists source artist and genre in dedicated fields; and
 - validates price entries but does not persist them because the current domain has no price model.
@@ -60,17 +75,22 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 | `GET /` | Restored splash home | Anonymous |
 | `GET /categories` | Category list | Anonymous |
 | `GET /categories/{id}` | Category with curated artwork images | Anonymous |
+| `GET /categories/{categoryId}/artworks/{artworkId}` | Selected artwork within its category | Anonymous |
 | `GET /artworks/{id}` | Artwork image, artist, genre, metadata, categories, and renditions | Anonymous |
 | `GET /bio` | Portfolio Bio page | Anonymous |
 | `GET /login` | Custom Spring Security login page | Anonymous |
 | `POST /login` | Spring Security form authentication | Anonymous with CSRF token |
-| `GET /admin` | Administration landing page | Authenticated |
+| `POST /logout` | Invalidate the authenticated session | CSRF token required |
+| `GET /admin` | Administration landing page | `ROLE_ADMIN` only |
+| `GET /admin/artworks/upload` | Artwork-upload form | `ROLE_ADMIN` only |
+| `POST /admin/artworks/upload` | Generate renditions and publish artwork | `ROLE_ADMIN` and CSRF token |
 | `GET /api/categories` | Category summaries as JSON | Anonymous |
 | `GET /api/categories/{id}` | Category and artwork summaries as JSON | Anonymous |
 | `GET /api/artworks/{id}` | Artwork detail as JSON | Anonymous |
 | `GET /css/**` | Gallery stylesheet | Anonymous |
 | `GET /images/**` | Preserved shell and Bio image assets | Anonymous |
-| `GET /artworks/images/**` | Bundled catalog images | Anonymous |
+| `GET /js/**` | Artwork dialog and rendition-selection scripts | Anonymous |
+| `GET`/`HEAD /media/**` | Externally stored artwork originals and renditions | Public artwork only; hidden/unregistered objects return 404 |
 
 ### Security behavior
 
@@ -78,21 +98,106 @@ The Bio page is implemented as a public portfolio profile while retaining the es
 - Error dispatches are permitted so missing public resources remain 404 instead of becoming authentication failures.
 - The custom login form posts to `/login`, uses Spring Security's `username` and `password` fields, and includes a CSRF token.
 - Successful authentication always redirects to `/admin`; failed authentication returns to `/login?error`.
-- `/admin` is protected but currently requires authentication only, not an administrator role.
+- `/admin` and `/admin/**` require the persisted administrator's `ROLE_ADMIN` authority.
 - Anonymous Actuator access remains protected; for example, `/actuator/health` returns 401.
 - HTTP Basic remains enabled alongside form login.
-- Spring Boot's generated development user/password is the current runtime credential source. This is not production authentication.
+- Spring Security loads the administrator from the database; Spring Boot's generated development user is not used.
+
+### Administrator bootstrap
+
+On the first startup against a fresh database, supply the initial administrator password through
+the environment and then start the application:
+
+```bash
+export GALLERY_ADMIN_BOOTSTRAP_PASSWORD='<choose-a-strong-password>'
+./gradlew bootRun
+```
+
+The application creates the `admin` account with `ROLE_ADMIN` and stores only a BCrypt hash. Later
+startups preserve the existing account and password hash, so the environment variable is no longer
+required after the account exists. If the account is absent and the variable is missing or blank,
+startup fails without exposing a password value.
 
 ## Persistence model and migrations
 
 - `ArtEntity`, `Category`, `Comment`, and rendition value objects form the current model.
 - `ArtworkRepository` and `CategoryRepository` provide aggregate loading and catalog/category identity lookups.
-- Flyway creates the schema and indexes, seeds five categories, records the superseded V3 demo, and prepares catalog identity in V4.
+- Flyway migrations V0–V6 create and evolve the schema, seed the initial categories, import the
+  curated catalog model, persist administrator identity, and activate general artwork visibility.
 - Hibernate runs with `ddl-auto=validate`; Flyway owns schema changes.
-- H2 is the verified database for local and automated execution.
+- Normal local execution uses file-backed H2 at `./gallery-data/gallery` (relative to
+  `modernised/gallery`). Override the location without changing source using
+  `GALLERY_DATABASE_PATH=/absolute/path/to/gallery-db/gallery`. H2 creates files alongside that
+  basename; `gallery-data/` is excluded from Git.
+- Automated tests override the datasource with isolated in-memory H2 databases.
 - PostgreSQL dependencies are present, but PostgreSQL migration/integration and production-readiness proof remain future work.
 
+To reset only the local database, stop the application and remove the generated files whose names
+begin with `gallery` from `modernised/gallery/gallery-data/` (or from the configured
+`GALLERY_DATABASE_PATH` directory). On the next startup, supply a new
+`GALLERY_ADMIN_BOOTSTRAP_PASSWORD`; Flyway recreates the schema, the 14 curated artworks are
+re-imported once, and the administrator is bootstrapped again. Resetting the database does not
+delete uploaded rendition directories from a separately configured artwork storage root.
+
+### Administrator artwork upload
+
+After signing in as `admin`, follow **Upload an artwork** from `/admin`. The form requires one JPEG
+or PNG image (maximum 10 MB), a title, and exactly one existing category selected from the database.
+Artist, genre, subtitle, media, display date, caption, and description are optional. Category
+creation and publication controls are intentionally absent.
+
+Each successful upload receives a UUID and is stored as:
+
+```text
+artwork-media/artworks/images/{uuid}/original.{jpeg|jpg|png}
+artwork-media/artworks/images/{uuid}/gallery.{jpeg|jpg|png}
+artwork-media/artworks/images/{uuid}/thumbnail.{jpeg|jpg|png}
+```
+
+The original is preserved byte-for-byte. Gallery (maximum 800 × 600) and thumbnail (maximum 96 ×
+96) renditions preserve aspect ratio and are not upscaled. JPA stores their logical object keys,
+content types, byte sizes, dimensions, and SHA-256 checksums—not image binaries. The files are
+published as one directory before metadata is committed; a validation or persistence failure
+removes the new directory. New artwork has `generalViewable=true` immediately, retains the existing
+default `privilegeViewable=false`, and flows through the existing category, artwork detail,
+Lightbox, `ArtworkUrlResolver`, and `/media` behavior.
+
 ## Build, test, and run
+
+### Artwork filesystem storage
+
+The repository's 42 curated media source files are held outside `src/main/resources`. Each artwork
+has a directory named with its stable source identity and three purpose-named rendition objects:
+
+```text
+artwork-media/artworks/images/{artwork-identity}/original.{ext}
+artwork-media/artworks/images/{artwork-identity}/gallery.{ext}
+artwork-media/artworks/images/{artwork-identity}/thumbnail.{ext}
+```
+
+The default local configuration reads the tracked external-media directory directly:
+
+```properties
+gallery.artwork.storage.root=${GALLERY_ARTWORK_STORAGE_ROOT:./artwork-media}
+```
+
+Run Gradle from `modernised/gallery`, so the default relative path resolves correctly. To provision
+an independent writable storage root, copy the complete curated set with the repeatable Gradle task
+and point the application at it:
+
+```bash
+./gradlew provisionArtworkMedia -PartworkStorageRoot=/absolute/path/to/gallery-artwork-media
+export GALLERY_ARTWORK_STORAGE_ROOT=/absolute/path/to/gallery-artwork-media
+```
+
+The task deliberately requires an explicit destination and refuses to overwrite the tracked source
+directory. Preserve the `artworks/images/{artwork-identity}/{rendition}.{ext}` layout because those
+paths are persistent logical object keys in the database. The application validates all 42 objects
+at startup and fails before catalogue writes when any required original or derivative is unavailable
+or invalid.
+
+Browser-facing URLs are resolved separately from storage keys and currently use `/media/{objectKey}`.
+That resolver can later be replaced by a cloud/CDN URL strategy without changing gallery templates.
 
 From this module:
 
@@ -107,12 +212,14 @@ cd modernised/gallery
 
 Open [http://localhost:8080](http://localhost:8080). The root renders the restored splash home; Galleries links to `/categories` and Bio links to `/bio`.
 
-The latest verification on `develop` passed:
+The baseline verification on `feature/admin-artwork-upload` passed:
 
-- 71 automated tests with no failures, errors, or skips;
+- 113 automated tests with no failures, errors, or skips;
 - the complete Gradle build, including Spotless, SpotBugs, JaCoCo, and packaging;
-- real HTTP checks for the splash home, Bio, public browsing pages/APIs, CSS, images, missing resources, login success/failure, authenticated `/admin`, CSRF enforcement, and protected Actuator access; and
-- startup import of 10 curated records plus repeat-safe importer coverage.
+- HTTP integration checks for the splash home, Bio, public browsing pages/APIs, externally stored
+  artwork media, missing and unsafe media paths, login success/failure, authenticated `/admin`, CSRF
+  enforcement, and protected Actuator access; and
+- startup import of 14 curated records with 42 renditions plus repeat-safe importer coverage.
 
 The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `develop`, pull requests to `master`, and manual dispatch. A separate dependency-submission workflow is configured for `master` pushes and manual dispatch.
 
@@ -120,23 +227,22 @@ The GitHub Actions build runs `./gradlew build --no-daemon` for pushes to `devel
 
 - Virtual Exhibitions is displayed in the preserved navigation but is intentionally non-functional.
 - Recent Works is displayed on the category page but is intentionally non-functional.
-- `/admin` is currently an authenticated landing page only.
+- Administration beyond artwork upload is still under construction.
 
 ## Current boundaries
 
-- Artwork upload, curation, exhibition management, and related administration workflows are future slices.
-- The bundled catalog uses the five seeded categories and may create a missing category during import. Production taxonomy ownership will be addressed when content-management workflows are introduced.
-- `generalViewable` and `privilegeViewable` remain in the inherited domain model but are not yet enforced as public-access rules.
-- Authentication currently uses Spring Boot's generated development user; production identities, roles, and authorization remain future work.
+- Artwork edit/delete, category management, exhibition management, and other administration workflows are future slices.
+- The bundled catalog spans six categories (Abstract, Landscape, Portrait, Sculpture, Urban, and Wireframes) and may create a missing category during import. Production taxonomy ownership remains outside this slice.
+- `generalViewable` controls anonymous listings, counts, artwork details, navigation, APIs, and rendition delivery. `privilegeViewable` remains outside the current public-access model.
+- Authentication uses a persisted administrator identity with `ROLE_ADMIN`; broader identity and authorization requirements remain future work.
 - Catalog price data is validated but intentionally remains outside the current domain model.
 - PostgreSQL support is present as a dependency, but production/integration proof remains future work.
 
 ## Future roadmap
 
-- artwork upload, curation, update/delete, and related administrator workflows;
+- curation, update/delete, category management, and related administrator workflows beyond the implemented upload;
 - exhibition creation and management;
 - visitor interest capture;
-- approved previous/next or modern lightbox behavior;
 - production authentication, with OAuth/OIDC still future work;
 - PostgreSQL integration and migration proof;
 - container, deployment, health-policy, observability, and operational documentation; and

@@ -14,4 +14,9 @@ public class HomeController {
   public String bio() {
     return "bio";
   }
+
+  @GetMapping("/exhibitions")
+  public String exhibitions() {
+    return "exhibitions";
+  }
 }

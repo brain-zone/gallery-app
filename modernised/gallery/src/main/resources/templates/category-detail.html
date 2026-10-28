@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="|${category.categoryName} · Barbara Israel Fine Arts|">Gallery category</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css(v='lightbox-controls')}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
     <script defer th:src="@{/js/artwork-lightbox.js}"></script>
   </head>
   <body>
     <div class="page-shell">
-      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
       <div class="page-body">
         <aside class="sidebar">
-          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <nav th:replace="~{fragments/navigation :: navigation('galleries', false)}"></nav>
           <img class="sidebar-image" th:src="@{/images/leftimage1.jpg}" alt="">
           <img class="sidebar-image" th:src="@{/images/leftimage2.jpg}" alt="">
           <img class="sidebar-image" th:src="@{/images/leftimage3.jpg}" alt="">
@@ -20,7 +21,7 @@
         <div class="content-divider" aria-hidden="true"></div>
         <main class="main-content">
           <div class="breadcrumb">
-            <a th:href="@{/categories}">Galleries:</a>
+            <a th:href="@{/categories}">Galleries</a> ›
             <span th:text="${category.categoryName}">Category</span>
           </div>
 

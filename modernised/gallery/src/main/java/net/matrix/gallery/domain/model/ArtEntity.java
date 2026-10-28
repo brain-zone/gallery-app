@@ -94,7 +94,7 @@ public class ArtEntity extends BaseDomainEntity {
       orphanRemoval = true)
   private Set<Comment> comments = new HashSet<>();
 
-  @Getter @Setter private boolean generalViewable;
+  @Getter @Setter private boolean generalViewable = true;
 
   @Getter @Setter
   private boolean

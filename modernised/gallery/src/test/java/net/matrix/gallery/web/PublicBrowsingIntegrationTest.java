@@ -3,6 +3,7 @@ package net.matrix.gallery.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +13,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,17 +25,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "GALLERY_ADMIN_BOOTSTRAP_PASSWORD=test-bootstrap-password")
 @AutoConfigureMockMvc
 class PublicBrowsingIntegrationTest {
 
   private static final String LANDSCAPE_ORIGINAL_IMAGE_PATH =
-      "/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+      "/media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/original.jpeg";
   private static final String LANDSCAPE_GALLERY_IMAGE_PATH =
-      "/artworks/images/g-3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+      "/media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/gallery.jpeg";
   private static final String LANDSCAPE_THUMBNAIL_IMAGE_PATH =
-      "/artworks/images/t-3F1ED738-72F7-4AFA-B6B2-969A545AC8DD.jpeg";
+      "/media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/thumbnail.jpeg";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryRepository categoryRepository;
@@ -54,6 +60,86 @@ class PublicBrowsingIntegrationTest {
   }
 
   @Test
+  void sharedPublicNavigationMapsEveryHtmlRoute() throws Exception {
+    for (String path :
+        java.util.List.of(
+            "/",
+            "/categories",
+            "/categories/" + categoryId,
+            "/categories/" + categoryId + "/artworks/" + artworkId,
+            "/artworks/" + artworkId,
+            "/bio",
+            "/exhibitions")) {
+      var response = htmlResponse(path);
+      assertThat(response.statusCode()).isEqualTo(200);
+      assertPublicNavigation(
+          response.body(),
+          path.equals("/")
+              ? null
+              : path.equals("/bio")
+                  ? "/bio"
+                  : path.equals("/exhibitions") ? "/exhibitions" : "/categories");
+    }
+    for (String path :
+        java.util.List.of("/categories/" + Long.MAX_VALUE, "/artworks/" + Long.MAX_VALUE)) {
+      var response = htmlResponse(path);
+      assertThat(response.statusCode()).isIn(401, 404);
+      assertPublicNavigation(response.body(), null);
+    }
+    var unauthorized = httpResponse("/actuator/health");
+    assertThat(unauthorized.statusCode()).isEqualTo(401);
+    assertPublicNavigation(unauthorized.body(), null);
+  }
+
+  @Test
+  void sharedNavigationPreservesAdministratorAccountActions() throws Exception {
+    for (String path : java.util.List.of("/", "/categories", "/bio", "/exhibitions")) {
+      var response =
+          mockMvc
+              .perform(
+                  get(path)
+                      .with(
+                          org.springframework.security.test.web.servlet.request
+                              .SecurityMockMvcRequestPostProcessors.user("admin")
+                              .roles("ADMIN")))
+              .andExpect(status().isOk())
+              .andReturn()
+              .getResponse();
+      var document = org.jsoup.Jsoup.parse(response.getContentAsString());
+      assertThat(document.select("nav[aria-label=Account] a[href=/admin]")).hasSize(1);
+      assertThat(document.select("nav[aria-label=Account] a[href=/login]")).isEmpty();
+      assertThat(
+              document.select(
+                  "nav[aria-label=Account] form[action=/logout][method=post] button[type=submit]"))
+          .hasSize(1);
+      assertThat(document.select("nav[aria-label=Account] form input[name=_csrf]")).hasSize(1);
+    }
+  }
+
+  private void assertPublicNavigation(String html, String currentHref) {
+    var document = org.jsoup.Jsoup.parse(html);
+    var count = document.select("link[rel=stylesheet][href='/css/gallery.css?v=account-row-2']");
+    assertThat(count).hasSize(1);
+    var navigation = document.select("nav[aria-label=Primary]");
+    assertThat(navigation).hasSize(1);
+    assertThat(navigation.select("a[href]").eachAttr("href"))
+        .containsExactly("/categories", "/exhibitions", "/bio");
+    assertThat(navigation.select("a").eachText())
+        .containsExactly("Galleries", "Virtual Exhibitions", "Bio");
+    assertThat(navigation.select("img")).isEmpty();
+    assertThat(navigation.select("[aria-disabled=true]")).isEmpty();
+    var current = document.select("[aria-current=page]");
+    if (currentHref == null) {
+      assertThat(current).isEmpty();
+    } else {
+      assertThat(current).hasSize(1);
+      assertThat(current.attr("href")).isEqualTo(currentHref);
+    }
+    assertThat(document.select("nav[aria-label=Account] a[href=/login]")).hasSize(1);
+    assertThat(document.select("nav[aria-label=Account] a[href=/admin]")).isEmpty();
+  }
+
+  @Test
   void anonymousVisitorCanOpenHomePage() throws Exception {
     mockMvc
         .perform(get("/").with(anonymous()))
@@ -62,12 +148,55 @@ class PublicBrowsingIntegrationTest {
         .andExpect(content().string(org.hamcrest.Matchers.containsString("home-shell")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("/categories")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/indeximage.jpg")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/ind_exhib.gif")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("Virtual Exhibitions")))
         .andExpect(
             content()
                 .string(
                     org.hamcrest.Matchers.not(
                         org.hamcrest.Matchers.containsString("/virtualExhibitions"))));
+  }
+
+  @Test
+  void anonymousVisitorCanOpenVirtualExhibitionsFromLandingAndInternalNavigation()
+      throws Exception {
+    for (String source : java.util.List.of("/", "/categories")) {
+      var sourceDocument = org.jsoup.Jsoup.parse(htmlResponse(source).body());
+      var link = sourceDocument.selectFirst("nav[aria-label=Primary] a[href=/exhibitions]");
+      assertThat(link).isNotNull();
+      assertThat(link.text()).isEqualTo("Virtual Exhibitions");
+      var destination = htmlResponse(link.attr("href"));
+      assertThat(destination.statusCode()).isEqualTo(200);
+      var page = org.jsoup.Jsoup.parse(destination.body());
+      assertThat(page.select("h1").text()).isEqualTo("Virtual Exhibitions");
+      assertThat(page.select("h2").text()).isEqualTo("Coming Soon");
+      assertThat(page.select(".category-box p").text())
+          .isEqualTo("We are preparing virtual exhibitions for you to explore.");
+      assertThat(page.select(".page-shell .site-logo, .page-shell .breadcrumb")).hasSize(2);
+      assertThat(page.select("nav[aria-label=Primary] a[href=/exhibitions][aria-current=page]"))
+          .hasSize(1);
+    }
+  }
+
+  @Test
+  void anonymousVisitorCanRetrieveExternallyStoredArtworkWithGetAndHead() throws Exception {
+    byte[] expected =
+        Files.readAllBytes(
+            Path.of(
+                "artwork-media/artworks/images/3F1ED738-72F7-4AFA-B6B2-969A545AC8DD/original.jpeg"));
+
+    mockMvc
+        .perform(get(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("image/jpeg"))
+        .andExpect(content().bytes(expected));
+
+    mockMvc
+        .perform(head(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("image/jpeg"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .longValue("Content-Length", expected.length));
   }
 
   @Test
@@ -296,7 +425,65 @@ class PublicBrowsingIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG));
     mockMvc
-        .perform(get("/artworks/images/missing.jpeg").with(anonymous()))
+        .perform(get("/media/artworks/images/missing.jpeg").with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/media/artworks/../application.properties").with(anonymous()))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void allCuratedArtworksArePublic() {
+    assertThat(artworkRepository.findAll())
+        .filteredOn(artwork -> artwork.getCatalogKey() != null)
+        .hasSize(14)
+        .allMatch(artwork -> artwork.isGeneralViewable());
+  }
+
+  @Test
+  @Transactional
+  void explicitlyHiddenArtworkIsAbsentFromPublicBrowsingDetailAndMedia() throws Exception {
+    long originalCategoryCount =
+        categoryRepository.listCategorySummaries().stream()
+            .filter(category -> category.id() == categoryId)
+            .findFirst()
+            .orElseThrow()
+            .artEntityCount();
+    var artwork = artworkRepository.findById(artworkId).orElseThrow();
+    artwork.setGeneralViewable(false);
+    artworkRepository.saveAndFlush(artwork);
+
+    mockMvc
+        .perform(get("/api/categories").with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$[?(@.id == " + categoryId + ")].artEntityCount")
+                .value((int) originalCategoryCount - 1));
+    mockMvc
+        .perform(get("/api/categories/{id}", categoryId).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.artworks[?(@.title == 'Sunrise over the Mountain')]").doesNotExist());
+    mockMvc
+        .perform(get("/categories/{id}", categoryId).with(anonymous()))
+        .andExpect(status().isOk())
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("Sunrise over the Mountain"))));
+    mockMvc
+        .perform(
+            get("/categories/{id}/artworks/{artworkId}", categoryId, artworkId).with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/artworks/{id}", artworkId).with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get("/api/artworks/{id}", artworkId).with(anonymous()))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(get(LANDSCAPE_ORIGINAL_IMAGE_PATH).with(anonymous()))
         .andExpect(status().isNotFound());
   }
 
@@ -349,7 +536,7 @@ class PublicBrowsingIntegrationTest {
     HttpResponse<String> notFound = htmlResponse("/categories/" + Long.MAX_VALUE);
     assertThat(notFound.statusCode()).isEqualTo(404);
     assertThat(notFound.body())
-        .contains("Page not found", "Return to the public gallery")
+        .contains("Page not found", "Home")
         .doesNotContain("GalleryResourceNotFoundException", "Category 9223372036854775807");
 
     HttpResponse<String> unauthorized = httpResponse("/actuator/health");
@@ -357,7 +544,7 @@ class PublicBrowsingIntegrationTest {
     assertThat(unauthorized.headers().firstValue("WWW-Authenticate"))
         .hasValue("Basic realm=\"Realm\"");
     assertThat(unauthorized.body())
-        .contains("Authentication required", "return to the public gallery")
+        .contains("Authentication required", "Home")
         .doesNotContain("Exception", "stack trace");
   }
 

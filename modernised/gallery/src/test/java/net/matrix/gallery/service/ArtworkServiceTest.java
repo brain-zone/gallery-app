@@ -13,9 +13,9 @@ import net.matrix.gallery.domain.model.Category;
 import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.ArtworkRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -24,13 +24,18 @@ import org.springframework.test.util.ReflectionTestUtils;
 class ArtworkServiceTest {
 
   @Mock private ArtworkRepository artworkRepository;
+  private ArtworkService artworkService;
 
-  @InjectMocks private ArtworkService artworkService;
+  @BeforeEach
+  void setUpService() {
+    artworkService =
+        new ArtworkService(artworkRepository, new ApplicationOriginArtworkUrlResolver());
+  }
 
   @Test
   void mapsArtworkCategoriesAndRenditionsToDetail() {
     ArtEntity artwork = artwork();
-    when(artworkRepository.findDetailById(9L)).thenReturn(Optional.of(artwork));
+    when(artworkRepository.findPublicDetailById(9L)).thenReturn(Optional.of(artwork));
 
     var detail = artworkService.getArtwork(9L);
 
@@ -47,7 +52,7 @@ class ArtworkServiceTest {
     assertThat(detail.caption()).isEqualTo("Serenity at dusk");
     assertThat(detail.generalViewable()).isTrue();
     assertThat(detail.privilegeViewable()).isFalse();
-    assertThat(detail.primaryImageUrl()).isEqualTo("/gallery/evening-sky.jpg");
+    assertThat(detail.primaryImageUrl()).isEqualTo("/media/gallery/evening-sky.jpg");
     assertThat(detail.categories())
         .singleElement()
         .satisfies(
@@ -61,19 +66,19 @@ class ArtworkServiceTest {
             rendition -> {
               assertThat(rendition.type()).isEqualTo(RenditionType.GALLERY);
               assertThat(rendition.objectKey()).isEqualTo("gallery/evening-sky.jpg");
-              assertThat(rendition.url()).isEqualTo("/gallery/evening-sky.jpg");
+              assertThat(rendition.url()).isEqualTo("/media/gallery/evening-sky.jpg");
               assertThat(rendition.contentType()).isEqualTo("image/jpeg");
               assertThat(rendition.sizeBytes()).isEqualTo(245760L);
               assertThat(rendition.width()).isEqualTo(1200);
               assertThat(rendition.height()).isEqualTo(800);
               assertThat(rendition.checksum()).isEqualTo("checksum");
             });
-    verify(artworkRepository).findDetailById(9L);
+    verify(artworkRepository).findPublicDetailById(9L);
   }
 
   @Test
   void missingArtworkRaisesNotFoundException() {
-    when(artworkRepository.findDetailById(404L)).thenReturn(Optional.empty());
+    when(artworkRepository.findPublicDetailById(404L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> artworkService.getArtwork(404L))
         .isInstanceOf(GalleryResourceNotFoundException.class)

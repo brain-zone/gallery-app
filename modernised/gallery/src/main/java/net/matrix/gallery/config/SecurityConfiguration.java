@@ -7,11 +7,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /** Security policy for the modernised gallery. */
 @Configuration
 public class SecurityConfiguration {
+
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -20,6 +27,8 @@ public class SecurityConfiguration {
                 requests
                     .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD)
                     .permitAll()
+                    .requestMatchers("/admin", "/admin/**")
+                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, GallerySecuredPaths.PUBLIC_GET_PATHS)
                     .permitAll()
                     .requestMatchers(HttpMethod.HEAD, GallerySecuredPaths.PUBLIC_GET_PATHS)

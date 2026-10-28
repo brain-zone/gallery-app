@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
   </head>
   <body>
     <div class="page-shell admin-shell">
-      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
       <main class="admin-content">
-        <div class="breadcrumb">Administration Tool</div>
+        <div class="breadcrumb">Administration › Login</div>
         <section class="admin-box" aria-labelledby="admin-heading">
           <h1 id="admin-heading">Welcome to the administration tool.</h1>
           <p class="admin-intro">Log in below to begin.</p>
@@ -28,7 +29,7 @@
               <input id="password" name="password" type="password" autocomplete="current-password">
             </div>
             <div class="form-actions">
-              <button type="submit">Submit</button>
+              <button type="submit">Log in</button>
             </div>
           </form>
         </section>

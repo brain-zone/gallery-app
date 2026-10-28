@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Page not found · Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
   </head>
   <body>
     <div class="page-shell">
-      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
       <div class="page-body">
         <aside class="sidebar">
-          <nav th:replace="~{fragments/navigation :: navigation}"></nav>
+          <nav th:replace="~{fragments/navigation :: navigation('', false)}"></nav>
           <img class="sidebar-image" th:src="@{/images/leftimage1.jpg}" alt="">
           <img class="sidebar-image" th:src="@{/images/leftimage2.jpg}" alt="">
           <img class="sidebar-image" th:src="@{/images/leftimage3.jpg}" alt="">
@@ -21,7 +22,7 @@
           <section class="error-box">
             <h1>Page not found</h1>
             <p>The requested page or resource could not be found.</p>
-            <p><a th:href="@{/}">Return to the public gallery</a></p>
+            <p><a th:href="@{/}">Home</a></p>
           </section>
         </main>
       </div>

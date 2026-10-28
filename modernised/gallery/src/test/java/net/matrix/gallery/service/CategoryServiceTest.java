@@ -12,9 +12,9 @@ import net.matrix.gallery.domain.value.CategorySummary;
 import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.CategoryRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -23,8 +23,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 class CategoryServiceTest {
 
   @Mock private CategoryRepository categoryRepository;
+  private CategoryService categoryService;
 
-  @InjectMocks private CategoryService categoryService;
+  @BeforeEach
+  void setUpService() {
+    categoryService =
+        new CategoryService(categoryRepository, new ApplicationOriginArtworkUrlResolver());
+  }
 
   @Test
   void returnsPopulatedCategorySummariesFromRepository() {
@@ -62,7 +67,7 @@ class CategoryServiceTest {
     assertThat(detail.artworks().getFirst().title()).isEqualTo("Evening Sky");
     assertThat(detail.artworks().getFirst().subTitle()).isEqualTo("Sunset series");
     assertThat(detail.artworks().getFirst().imageUrl())
-        .isEqualTo("/artworks/images/thumbnail-evening-sky.jpg");
+        .isEqualTo("/media/artworks/images/thumbnail-evening-sky.jpg");
     verify(categoryRepository).findWithArtEntitiesById(5L);
   }
 
@@ -126,10 +131,11 @@ class CategoryServiceTest {
 
     var viewer = categoryService.getCategoryViewer(5L);
 
-    assertThat(viewer.selectedArtwork().imageUrl()).isEqualTo("/artworks/images/thumbnail.jpg");
+    assertThat(viewer.selectedArtwork().imageUrl())
+        .isEqualTo("/media/artworks/images/thumbnail.jpg");
     assertThat(viewer.selectedArtworkArtist()).isEqualTo("Legacy Artist");
-    assertThat(viewer.featuredImageUrl()).isEqualTo("/artworks/images/evening-sky.jpg");
-    assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/artworks/images/original.jpg");
+    assertThat(viewer.featuredImageUrl()).isEqualTo("/media/artworks/images/evening-sky.jpg");
+    assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/media/artworks/images/original.jpg");
     verify(categoryRepository).findWithArtEntitiesById(5L);
   }
 
@@ -170,10 +176,10 @@ class CategoryServiceTest {
     assertThat(viewer.lightboxArtworks())
         .extracting(artwork -> artwork.imageUrl())
         .containsExactly(
-            "/artworks/images/alpha-gallery.jpg",
-            "/artworks/images/middle-thumbnail.jpg",
+            "/media/artworks/images/alpha-gallery.jpg",
+            "/media/artworks/images/middle-thumbnail.jpg",
             null,
-            "/artworks/images/zulu-original.jpg");
+            "/media/artworks/images/zulu-original.jpg");
 
     assertThat(viewer.id()).isEqualTo(5L);
     assertThat(viewer.categoryName()).isEqualTo("Landscapes");
@@ -186,8 +192,8 @@ class CategoryServiceTest {
     assertThat(viewer.nextArtwork()).isNull();
     assertThat(viewer.selectedArtworkArtist()).isEqualTo("Zed Artist");
     assertThat(viewer.selectedArtworkDescription()).isNull();
-    assertThat(viewer.featuredImageUrl()).isEqualTo("/artworks/images/zulu-gallery.jpg");
-    assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/artworks/images/zulu-original.jpg");
+    assertThat(viewer.featuredImageUrl()).isEqualTo("/media/artworks/images/zulu-gallery.jpg");
+    assertThat(viewer.featuredImageLinkUrl()).isEqualTo("/media/artworks/images/zulu-original.jpg");
     verify(categoryRepository).findWithArtEntitiesById(5L);
   }
 
@@ -215,20 +221,22 @@ class CategoryServiceTest {
     var blankThumbnailViewer = categoryService.getCategoryViewer(5L, 12L);
 
     assertThat(originalViewer.selectedArtwork().imageUrl())
-        .isEqualTo("/artworks/images/alpha-original.jpg");
-    assertThat(originalViewer.featuredImageUrl()).isEqualTo("/artworks/images/alpha-original.jpg");
+        .isEqualTo("/media/artworks/images/alpha-original.jpg");
+    assertThat(originalViewer.featuredImageUrl())
+        .isEqualTo("/media/artworks/images/alpha-original.jpg");
     assertThat(originalViewer.featuredImageLinkUrl())
-        .isEqualTo("/artworks/images/alpha-original.jpg");
+        .isEqualTo("/media/artworks/images/alpha-original.jpg");
     assertThat(thumbnailViewer.selectedArtwork().imageUrl())
-        .isEqualTo("/artworks/images/beta-thumbnail.jpg");
-    assertThat(thumbnailViewer.featuredImageUrl()).isEqualTo("/artworks/images/beta-thumbnail.jpg");
+        .isEqualTo("/media/artworks/images/beta-thumbnail.jpg");
+    assertThat(thumbnailViewer.featuredImageUrl())
+        .isEqualTo("/media/artworks/images/beta-thumbnail.jpg");
     assertThat(thumbnailViewer.featuredImageLinkUrl())
-        .isEqualTo("/artworks/images/beta-thumbnail.jpg");
+        .isEqualTo("/media/artworks/images/beta-thumbnail.jpg");
     assertThat(noImageViewer.selectedArtwork().imageUrl()).isNull();
     assertThat(noImageViewer.featuredImageUrl()).isNull();
     assertThat(noImageViewer.featuredImageLinkUrl()).isNull();
     assertThat(blankThumbnailViewer.selectedArtwork().imageUrl())
-        .isEqualTo("/artworks/images/omega-gallery.jpg");
+        .isEqualTo("/media/artworks/images/omega-gallery.jpg");
   }
 
   @Test

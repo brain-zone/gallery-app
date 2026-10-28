@@ -4,19 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Barbara Israel Fine Arts</title>
-    <link rel="stylesheet" th:href="@{/css/gallery.css}">
+    <link th:replace="~{fragments/navigation :: stylesheet}">
   </head>
   <body>
     <div class="page-shell admin-shell">
-      <header class="site-header" aria-label="Barbara Israel Fine Arts"></header>
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
       <main class="admin-content">
-        <div class="breadcrumb">Administration Tool</div>
-        <section class="admin-box admin-landing" aria-labelledby="admin-heading">
-          <h1 id="admin-heading">Success!</h1>
-          <p class="admin-intro">You have successfully logged in.</p>
-          <p class="admin-under-construction">
-            The administration site and its features are under construction.
-          </p>
+        <div class="breadcrumb">Administration</div>
+        <section class="admin-box admin-dashboard" aria-labelledby="admin-heading">
+          <header class="admin-dashboard__header">
+            <p class="admin-dashboard__eyebrow">Gallery management</p>
+            <h1 id="admin-heading">Administration</h1>
+            <p>Choose an area to manage.</p>
+          </header>
+
+          <div class="admin-dashboard__actions">
+            <a class="admin-dashboard-card admin-dashboard-card--active"
+               th:href="@{/admin/artworks/upload}">
+              <span class="admin-dashboard-card__icon" aria-hidden="true">+</span>
+              <span class="admin-dashboard-card__content">
+                <strong>Upload Artwork</strong>
+                <span>Add artwork details, generate renditions, and publish it to the gallery.</span>
+              </span>
+              <span class="admin-dashboard-card__arrow" aria-hidden="true">›</span>
+            </a>
+
+            <div class="admin-dashboard-card admin-dashboard-card--disabled" aria-disabled="true">
+              <span class="admin-dashboard-card__icon" aria-hidden="true">◇</span>
+              <span class="admin-dashboard-card__content">
+                <span class="admin-dashboard-card__title-row">
+                  <strong>Create an Exhibition</strong>
+                  <span class="admin-dashboard-card__badge">Coming soon</span>
+                </span>
+                <span>Group selected artworks into a virtual exhibition.</span>
+              </span>
+            </div>
+          </div>
+
         </section>
       </main>
     </div>

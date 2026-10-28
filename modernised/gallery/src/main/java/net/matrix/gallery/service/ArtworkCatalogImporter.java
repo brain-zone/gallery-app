@@ -32,6 +32,9 @@ import net.matrix.gallery.domain.value.ImageRendition;
 import net.matrix.gallery.domain.value.RenditionType;
 import net.matrix.gallery.repository.ArtworkRepository;
 import net.matrix.gallery.repository.CategoryRepository;
+import net.matrix.gallery.storage.ArtworkStorage;
+import net.matrix.gallery.storage.InvalidArtworkObjectKeyException;
+import net.matrix.gallery.storage.StoredArtwork;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -47,6 +50,7 @@ public class ArtworkCatalogImporter {
   private final ResourceLoader resourceLoader;
   private final ArtworkRepository artworkRepository;
   private final CategoryRepository categoryRepository;
+  private final ArtworkStorage artworkStorage;
 
   @SuppressFBWarnings(
       value = "EI_EXPOSE_REP2",
@@ -55,11 +59,13 @@ public class ArtworkCatalogImporter {
       ObjectMapper objectMapper,
       ResourceLoader resourceLoader,
       ArtworkRepository artworkRepository,
-      CategoryRepository categoryRepository) {
+      CategoryRepository categoryRepository,
+      ArtworkStorage artworkStorage) {
     this.objectMapper = objectMapper;
     this.resourceLoader = resourceLoader;
     this.artworkRepository = artworkRepository;
     this.categoryRepository = categoryRepository;
+    this.artworkStorage = artworkStorage;
   }
 
   @Transactional
@@ -155,13 +161,12 @@ public class ArtworkCatalogImporter {
       }
 
       validatePrices(source.prices(), location);
-      prepared.add(prepareArtwork(catalogResource, source, location));
+      prepared.add(prepareArtwork(source, location));
     }
     return List.copyOf(prepared);
   }
 
-  private PreparedArtwork prepareArtwork(
-      Resource catalogResource, ArtworkSource source, String location) {
+  private PreparedArtwork prepareArtwork(ArtworkSource source, String location) {
     Path sourcePath;
     try {
       sourcePath = Path.of(source.fileName()).normalize();
@@ -182,23 +187,28 @@ public class ArtworkCatalogImporter {
     if (imageFileName == null) {
       throw new ArtworkCatalogImportException(location + " image filename is missing");
     }
+    String imageFileNameValue = imageFileName.toString();
+    int extensionStart = imageFileNameValue.lastIndexOf('.');
+    if (extensionStart <= 0 || extensionStart == imageFileNameValue.length() - 1) {
+      throw new ArtworkCatalogImportException(location + " image filename has no extension");
+    }
+    String uniqueKey = imageFileNameValue.substring(0, extensionStart);
+    String extension = imageFileNameValue.substring(extensionStart);
+    Path renditionDirectory = sourcePath.resolveSibling(uniqueKey);
 
     Map<RenditionType, ImageRendition> renditions = new EnumMap<>(RenditionType.class);
     renditions.put(
         RenditionType.ORIGINAL,
-        prepareRendition(catalogResource, sourcePath, location, RenditionType.ORIGINAL));
+        prepareRendition(
+            renditionDirectory.resolve("original" + extension), location, RenditionType.ORIGINAL));
     renditions.put(
         RenditionType.GALLERY,
         prepareRendition(
-            catalogResource,
-            sourcePath.resolveSibling("g-" + imageFileName),
-            location,
-            RenditionType.GALLERY));
+            renditionDirectory.resolve("gallery" + extension), location, RenditionType.GALLERY));
     renditions.put(
         RenditionType.THUMBNAIL,
         prepareRendition(
-            catalogResource,
-            sourcePath.resolveSibling("t-" + imageFileName),
+            renditionDirectory.resolve("thumbnail" + extension),
             location,
             RenditionType.THUMBNAIL));
 
@@ -213,42 +223,39 @@ public class ArtworkCatalogImporter {
   }
 
   private ImageRendition prepareRendition(
-      Resource catalogResource, Path imagePath, String location, RenditionType renditionType) {
+      Path imagePath, String location, RenditionType renditionType) {
     String relativeImagePath =
         StreamSupport.stream(imagePath.spliterator(), false)
             .map(Path::toString)
             .collect(Collectors.joining("/"));
-    Resource imageResource;
+    String objectKey = "artworks/" + relativeImagePath;
+    StoredArtwork storedArtwork;
     try {
-      imageResource = catalogResource.createRelative(relativeImagePath);
+      storedArtwork = artworkStorage.read(objectKey).orElse(null);
+    } catch (InvalidArtworkObjectKeyException exception) {
+      throw new ArtworkCatalogImportException(
+          location + " required " + renditionType + " image has an unsafe object key: " + objectKey,
+          exception);
     } catch (IOException exception) {
       throw new ArtworkCatalogImportException(
           location
               + " required "
               + renditionType
-              + " image path could not be resolved: "
-              + relativeImagePath,
+              + " image could not be read from storage: "
+              + objectKey,
           exception);
     }
-    if (!imageResource.exists() || !imageResource.isReadable()) {
+    if (storedArtwork == null) {
       throw new ArtworkCatalogImportException(
-          location
-              + " refers to missing required "
-              + renditionType
-              + " image "
-              + relativeImagePath);
+          location + " refers to missing required " + renditionType + " image " + objectKey);
     }
 
     byte[] imageBytes;
-    try (InputStream input = imageResource.getInputStream()) {
+    try (InputStream input = storedArtwork.resource().getInputStream()) {
       imageBytes = input.readAllBytes();
     } catch (IOException exception) {
       throw new ArtworkCatalogImportException(
-          location
-              + " required "
-              + renditionType
-              + " image could not be read: "
-              + relativeImagePath,
+          location + " required " + renditionType + " image could not be read: " + objectKey,
           exception);
     }
     BufferedImage image;
@@ -287,7 +294,7 @@ public class ArtworkCatalogImporter {
     }
     String contentType = contentType(imageFileName.toString(), location);
     return new ImageRendition(
-        "artworks/" + relativeImagePath,
+        objectKey,
         contentType,
         (long) imageBytes.length,
         image.getWidth(),

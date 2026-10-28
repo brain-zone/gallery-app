@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Upload Artwork | Barbara Israel Fine Arts</title>
+    <link th:replace="~{fragments/navigation :: stylesheet}">
+  </head>
+  <body>
+    <div class="page-shell admin-shell">
+      <header th:replace="~{fragments/navigation :: siteHeader}"></header>
+      <nav th:replace="~{fragments/navigation :: accountNavigation(false)}"></nav>
+      <main class="admin-content">
+        <div class="breadcrumb"><a th:href="@{/admin}">Administration</a> › Upload Artwork</div>
+        <section class="admin-box" aria-labelledby="upload-heading">
+          <h1 id="upload-heading">Upload Artwork</h1>
+          <p>JPEG or PNG, up to 10 MB. The artwork is published immediately.</p>
+          <form class="artwork-upload-form" th:action="@{/admin/artworks/upload}" th:object="${artworkUploadForm}" method="post" enctype="multipart/form-data">
+            <div class="form-errors" role="alert" th:if="${#fields.hasGlobalErrors()}">
+              <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Upload failed.</p>
+            </div>
+            <label for="image">Image <span aria-hidden="true">*</span></label>
+            <input id="image" type="file" th:field="*{image}" accept="image/jpeg,image/png" required>
+            <p class="field-error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}"></p>
+
+            <label for="title">Title <span aria-hidden="true">*</span></label>
+            <input id="title" type="text" th:field="*{title}" maxlength="255" required>
+            <p class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+
+            <label for="categoryId">Category <span aria-hidden="true">*</span></label>
+            <select id="categoryId" th:field="*{categoryId}" required>
+              <option value="">Select a category</option>
+              <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.categoryName}"></option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></p>
+
+            <label for="artist">Artist</label><input id="artist" type="text" th:field="*{artist}" maxlength="255">
+            <label for="genre">Genre</label><input id="genre" type="text" th:field="*{genre}" maxlength="255">
+            <label for="subTitle">Subtitle</label><input id="subTitle" type="text" th:field="*{subTitle}" maxlength="255">
+            <label for="media">Media</label><input id="media" type="text" th:field="*{media}" maxlength="255">
+            <label for="displayDate">Display date</label><input id="displayDate" type="date" th:field="*{displayDate}">
+            <label for="caption">Caption</label><input id="caption" type="text" th:field="*{caption}" maxlength="255">
+            <label for="description">Description</label><textarea id="description" th:field="*{description}" maxlength="4000" rows="5"></textarea>
+            <button type="submit">Upload and publish</button>
+          </form>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

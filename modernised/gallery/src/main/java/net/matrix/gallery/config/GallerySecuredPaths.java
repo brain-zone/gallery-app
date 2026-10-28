@@ -5,6 +5,7 @@ public class GallerySecuredPaths {
     "/",
     "/login",
     "/bio",
+    "/exhibitions",
     "/categories",
     "/categories/**",
     "/artworks/**",
@@ -13,7 +14,5 @@ public class GallerySecuredPaths {
     "/api/artworks/**"
   };
 
-  static final String[] PUBLIC_ASSET_PATHS = {
-    "/css/**", "/images/**", "/js/**", "/artworks/images/**"
-  };
+  static final String[] PUBLIC_ASSET_PATHS = {"/css/**", "/images/**", "/js/**", "/media/**"};
 }
